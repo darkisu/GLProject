@@ -55,11 +55,25 @@ void Scene::Draw(Shader shader)
 {
 	glUniform3fv(glGetUniformLocation(shader.Program, "LightPos"), 1, glm::value_ptr(pointOfLight.position));
 	glUniform3fv(glGetUniformLocation(shader.Program, "LightColor"), 1, glm::value_ptr(pointOfLight.color));
-	for (GLuint i = 0; i < this->meshes.size(); i++)
-		this->meshes[i].Draw(shader);
+
+	ModelObject thisModel;
+
+	for (GLuint modelCounter = 0; modelCounter < this->models.size(); modelCounter++)
+	{
+		if (models[modelCounter].toDraw == false) continue;
+		thisModel = models[modelCounter];
+		glm::mat4 modelProperties;
+		modelProperties = glm::translate(modelProperties, thisModel.translation); // Translate it down a bit so it's at the center of the scene
+		modelProperties = glm::scale(modelProperties, thisModel.scale);	// It's a bit too big for our scene, so scale it down
+		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelProperties));
+		for (GLuint meshCounter = thisModel.startMesh; meshCounter < thisModel.meshCount + thisModel.startMesh; meshCounter++)
+		{
+			this->meshes[meshCounter].Draw(shader);
+		}
+	}
 }
 
-void Scene::loadModel(string path)
+void Scene::loadModel(string path,GLuint &ID)
 {
 	// Read file via ASSIMP
 	Assimp::Importer importer;
@@ -73,8 +87,24 @@ void Scene::loadModel(string path)
 	// Retrieve the directory path of the filepath
 	this->directory = path.substr(0, path.find_last_of('\\'));
 
+	// Save the property of this model with which meshes are contained by the model
+	GLuint startPoint, meshCount;
+	ModelObject thisModel;
+	startPoint = this->meshes.size();
+
 	// Process ASSIMP's root node recursively
 	this->processNode(scene->mRootNode, scene);
+	meshCount = this->meshes.size();
+
+	thisModel.startMesh = startPoint;
+	thisModel.meshCount = meshCount;
+	thisModel.scale = glm::vec3(1.0, 1.0, 1.0);
+	thisModel.translation = glm::vec3(0.0, 0.0, 0.0);
+	thisModel.toDraw = true;
+
+	models.push_back(thisModel);
+
+	ID = models.size() - 1;
 }
 
 void Scene::processNode(aiNode * node, const aiScene * scene)

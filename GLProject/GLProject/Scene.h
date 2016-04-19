@@ -19,33 +19,52 @@ using namespace std;
 
 GLint TextureFromFile(const char* path, string directory);
 
-typedef struct PointOfLight
+typedef struct
 {
 	glm::vec3 position;
 	glm::vec3 color;
-};
+}PointOfLight;
 
+typedef struct
+{
+	GLuint startMesh;
+	GLuint meshCount;
+	glm::vec3 translation;
+	glm::vec3 scale;
+	bool toDraw;
+}ModelObject;
 
 class Scene
 {
 public:
-	Scene(GLchar* path)
+	Scene(GLchar* path, GLuint &ID)
 	{
 		pointOfLight.position = glm::vec3(0.0, 0.0, 0.0);
 		pointOfLight.color = glm::vec3(1.0, 1.0, 1.0);
-		this->loadModel(path);
+		this->loadModel(path, ID);
 	}
 	~Scene();
 	void Draw(Shader shader);
-	void loadModel(string path);
+	void loadModel(string path,GLuint &ID);
 	void setupPointOfLight(glm::vec3 position, glm::vec3 color)
 	{
 		pointOfLight.position = position;
 		pointOfLight.color = color;
 	}
+	void setModel(GLuint ID, bool toDraw)
+	{
+		models[ID].toDraw = toDraw;
+	}
+	void setModel(GLuint ID, bool toDraw, glm::vec3 trans, glm::vec3 scal)
+	{
+		setModel(ID, toDraw);
+		models[ID].translation = trans;
+		models[ID].scale = scal;
+	}
 private:
 	/*  Model Data  */
 	PointOfLight pointOfLight;
+	vector<ModelObject> models;
 	vector<Mesh> meshes;
 	string directory;
 	vector<Texture> textures_loaded;	// Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.

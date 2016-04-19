@@ -17,7 +17,6 @@ using namespace std;
 // Assimp Includes
 #include <assimp\Importer.hpp>
 
-
 struct Vertex {
 	// Position
 	glm::vec3 Position;

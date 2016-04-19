@@ -35,15 +35,13 @@ GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 
-GLfloat scaleVal = 0.1f;
-
 int main()
 {
 
 	initiate( screenWidth, screenHeight,"GLProject Result");
-
+	GLuint sponzaID, cubeID;
 	//Model TargetModel(".\\model\\nanosuit\\nanosuit.obj");
-	Scene TargetScene(".\\model\\sponza.obj");
+	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
 	//Model TargetModel2(".\\model\\cube\\cube.obj");
 	//Model TargetModel2(".\\model\\plane\\cube.obj");
 	Shader shader("./shader/Shader.vs", "./shader/Shader.fs");
@@ -78,10 +76,6 @@ int main()
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
 		// Draw the loaded model
-		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // Translate it down a bit so it's at the center of the scene
-		//model = glm::scale(model, glm::vec3(scaleVal, scaleVal, scaleVal));	// It's a bit too big for our scene, so scale it down
-		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
 		TargetScene.setupPointOfLight(glm::vec3(0.0, 1000.0, 0.0), glm::vec3(1.0, 1.0, 1.0));
 
@@ -171,8 +165,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	//camera.ProcessMouseScroll(yoffset);
-	scaleVal *= 1+yoffset / abs(yoffset)*0.2;
+	camera.ProcessMouseScroll(yoffset);
 }
 
 void Do_Movement() 
