@@ -16,7 +16,7 @@ ShadowMap::ShadowMap(unsigned int size)
 
 void ShadowMap::Draw(Shader shader)
 {
-
+	
 }
 
 
