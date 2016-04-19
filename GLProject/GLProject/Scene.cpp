@@ -66,6 +66,7 @@ void Scene::Draw(Shader shader)
 		modelProperties = glm::translate(modelProperties, thisModel.translation); // Translate it down a bit so it's at the center of the scene
 		modelProperties = glm::scale(modelProperties, thisModel.scale);	// It's a bit too big for our scene, so scale it down
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelProperties));
+
 		for (GLuint meshCounter = thisModel.startMesh; meshCounter < thisModel.meshCount + thisModel.startMesh; meshCounter++)
 		{
 			this->meshes[meshCounter].Draw(shader);

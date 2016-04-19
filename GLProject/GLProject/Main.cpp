@@ -65,10 +65,11 @@ int main()
 		glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shader.Use();   // <-- Don't forget this one!
-						// Transformation matrices
-		//------------------Render Main Model-----------------------------
+		// use shader
+		shader.Use();
 
+		//------------------Render Main Model-----------------------------
+		// Camera setup
 		glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
 		glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 0.1f, 10000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
@@ -76,11 +77,9 @@ int main()
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
 		// Draw the loaded model
-
 		TargetScene.setupPointOfLight(glm::vec3(0.0, 1000.0, 0.0), glm::vec3(1.0, 1.0, 1.0));
 
 		TargetScene.Draw(shader);
-
 
 		glfwSwapBuffers(pWindow);
 	}
