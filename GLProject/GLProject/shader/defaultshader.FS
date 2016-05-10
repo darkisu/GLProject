@@ -4,7 +4,7 @@ in vec3 Normal;
 in vec3 FragPos;
 
 
-out vec4 color;
+layout (location = 0) out vec3 color;
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 LightPos;
@@ -37,5 +37,5 @@ void main()
     vec3 specular = Ks * spec * LightColor;  
 
     vec3 result = (ambient + diffuse + specular) * vec3(ObjectColor);
-    color =  vec4(result, 1.0f);
+    color =  result;
 }

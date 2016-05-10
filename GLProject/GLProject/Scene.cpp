@@ -65,7 +65,7 @@ void Scene::Draw(Shader shader)
 		glm::mat4 modelProperties;
 		modelProperties = glm::translate(modelProperties, thisModel.translation); // Translate it down a bit so it's at the center of the scene
 		modelProperties = glm::scale(modelProperties, thisModel.scale);	// It's a bit too big for our scene, so scale it down
-		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(modelProperties));
+		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "ModelProp"), 1, GL_FALSE, glm::value_ptr(modelProperties));
 
 		for (GLuint meshCounter = thisModel.startMesh; meshCounter < thisModel.meshCount + thisModel.startMesh; meshCounter++)
 		{
@@ -107,6 +107,7 @@ void Scene::loadModel(string path,GLuint &ID)
 
 	ID = models.size() - 1;
 }
+
 
 void Scene::processNode(aiNode * node, const aiScene * scene)
 {

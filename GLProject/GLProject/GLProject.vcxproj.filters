@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{ae42e88b-0dfd-4b76-a9e9-383d02fc4e34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -27,10 +30,10 @@
     <ClCompile Include="Shader.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowMap.cpp">
+    <ClCompile Include="Scene.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
+    <ClCompile Include="ReflectiveShadowMap.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,11 +47,25 @@
     <ClInclude Include="Shader.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowMap.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="ReflectiveShadowMap.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\defaultshader.FS">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\defaultshader.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\showTexture.fs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\showTexture.vs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

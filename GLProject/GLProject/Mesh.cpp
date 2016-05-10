@@ -81,4 +81,5 @@ void Mesh::Draw(Shader shader)		//draw by default phong lighting
 	glBindVertexArray(this->VAO);
 	glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
