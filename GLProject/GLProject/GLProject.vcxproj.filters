@@ -55,16 +55,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader\defaultshader.FS">
+    <None Include="shader\showTexture.glvs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shader\defaultshader.vs">
+    <None Include="shader\showTexture.glfs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shader\showTexture.fs">
+    <None Include="shader\defaultshader.glvs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shader\showTexture.vs">
+    <None Include="shader\defaultshader.glfs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
