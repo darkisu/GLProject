@@ -166,6 +166,8 @@
   <ItemGroup>
     <None Include="shader\defaultshader.glfs" />
     <None Include="shader\defaultshader.glvs" />
+    <None Include="shader\deferredp1.glfs" />
+    <None Include="shader\deferredp1.glvs" />
     <None Include="shader\showTexture.glfs" />
     <None Include="shader\showTexture.glvs" />
   </ItemGroup>
