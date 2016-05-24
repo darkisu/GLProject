@@ -1,0 +1,41 @@
+#version 330 core
+in vec2 TexCoords;
+in vec3 Normal;
+in vec3 FragPos;
+
+
+layout (location = 0) out float depth;
+layout (location = 1) out vec3 diffuse;
+layout (location = 2) out vec3 norm;
+layout (location = 3) out vec3 geom;
+layout (location = 4) out vec3 materialKa;
+layout (location = 5) out vec3 materialKd;
+layout (location = 6) out vec3 materialKs;
+
+uniform sampler2D texture_diffuse1;
+uniform vec3 LightPos;
+uniform vec3 LightColor;
+uniform vec3 ViewPos;
+uniform vec3 Ka;
+uniform vec3 Kd;
+uniform vec3 Ks;
+
+void main()
+{
+	//depth
+	depth = gl_FragCoord.z;    
+
+	//diffuse
+    diffuse = vec3(texture(texture_diffuse1, TexCoords));
+
+	//normal
+	norm = Normal;
+
+	//geometry
+	geom = FragPos;
+
+	//material
+	materialKa = Ka;
+	materialKd = Kd;
+	materialKs = Ks; 
+}

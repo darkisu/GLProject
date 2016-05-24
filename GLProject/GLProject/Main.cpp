@@ -87,66 +87,24 @@ int main()
 {
 
 	initiate( screenWidth, screenHeight,"GLProject Result");
-
+	showTexture_INIT();
 	// Scene ID Variables
 	GLuint sponzaID, cubeID;
 
 	// Scenes
 	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
-
+	TargetScene.def_INIT(screenWidth, screenHeight);
 	// Shaders
-	Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs");
+	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs");
+	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs");
 	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs");
-	//--------------test code--------------
-
-	GLuint renderTex, depthTex;
-	glGenTextures(1, &renderTex);
-	GLuint FBO;
-	glActiveTexture(GL_TEXTURE0);
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-	// "Bind" the newly created texture : all future texture functions will modify this texture
-	glBindTexture(GL_TEXTURE_2D, renderTex);
-
-	// Give an empty image to OpenGL ( the last "0" )
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, screenWidth, screenHeight, 0, GL_RGB, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	GLuint depthrenderbuffer;
-	glGenRenderbuffers(1, &depthrenderbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screenWidth, screenHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
-
-	// Set "renderedTexture" as our colour attachement #0
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderTex, 0);
-
-	
-	// Set the list of draw buffers.
-	GLenum DrawBuffers[1] = {  GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, DrawBuffers);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	//-------------------------------------
 
 	//------Main Loop------//
-	showTexture_INIT();
 	while (!glfwWindowShouldClose(pWindow))
 	{
 		GLfloat currentFrameTime = glfwGetTime();
 		deltaTime = currentFrameTime - lastFrame;
 		lastFrame = currentFrameTime;
-
-		//-----------test code-------------
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glViewport(0, 0, screenWidth, screenHeight);
 
 		// Check and call events
 		glfwPollEvents();
@@ -169,15 +127,7 @@ int main()
 		// Draw the loaded model
 		TargetScene.setupPointOfLight(glm::vec3(0.0, 1000.0, 0.0), glm::vec3(1.0, 1.0, 1.0));
 
-		TargetScene.Draw(shader);
-
-		//----------test code---------
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, screenWidth, screenHeight);
-
-		showTexture(renderTex, showTexShader);
-
+		TargetScene.defDraw(shader);
 
 		glfwSwapBuffers(pWindow);
 	}

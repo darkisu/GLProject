@@ -67,5 +67,11 @@
     <None Include="shader\defaultshader.glfs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shader\deferredp1.glfs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\deferredp1.glvs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
