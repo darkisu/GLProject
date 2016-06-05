@@ -41,6 +41,8 @@ GLint TextureFromFile(const char* path, string directory)
 	//SOIL_free_image_data(image);
 
 
+
+
 	return textureID;
 }
 
@@ -107,7 +109,140 @@ void Scene::loadModel(string path,GLuint &ID)
 }
 
 
+void Scene::def_INIT(GLuint width, GLuint height)
+{
+	defWidth = width;
+	defHeight = height;
+	glActiveTexture(GL_TEXTURE0);
+	// Framebuffe object
+	glGenFramebuffers(1, &defFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, defFramebuffer);
 
+	// Depth Map
+	glGenTextures(1, &defDepthTex);
+	glBindTexture(GL_TEXTURE_2D, defDepthTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, defDepthTex, 0);
+
+	// Diffuse
+	glGenTextures(1, &defDiffTex);
+
+	glBindTexture(GL_TEXTURE_2D, defDiffTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, defDiffTex, 0);
+	
+	// Normal
+	glGenTextures(1, &defNormTex);
+
+	glBindTexture(GL_TEXTURE_2D, defNormTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, defNormTex, 0);
+
+	// Geomatry
+	glGenTextures(1, &defGeomTex);
+
+	glBindTexture(GL_TEXTURE_2D, defGeomTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, defGeomTex, 0);
+
+	// Material Ka
+	glGenTextures(1, &defKaTex);
+
+	glBindTexture(GL_TEXTURE_2D, defKaTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, defKaTex, 0);
+
+	// Material Kd
+	glGenTextures(1, &defKdTex);
+
+	glBindTexture(GL_TEXTURE_2D, defKdTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, defKdTex, 0);
+
+	// Material Ks
+	glGenTextures(1, &defKsTex);
+
+	glBindTexture(GL_TEXTURE_2D, defKsTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, defKsTex, 0);
+
+	GLuint drawbuffer[] = { 
+		GL_NONE,				// Depth
+		GL_COLOR_ATTACHMENT0,	// Diffuse
+		GL_COLOR_ATTACHMENT1,	// Normal
+		GL_COLOR_ATTACHMENT2,	// Geomatry
+		GL_COLOR_ATTACHMENT3,	// Material Ka
+		GL_COLOR_ATTACHMENT4,	// Material Kd
+		GL_COLOR_ATTACHMENT5,	// Material Ks
+	};
+	glDrawBuffers(7, drawbuffer);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Scene::defDraw(Shader shader)
+{
+	//glDisable(GL_DEPTH_TEST);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, defFramebuffer);
+
+	glViewport(0, 0, defWidth, defHeight);
+	shader.Use();
+	this->Draw(shader);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
 
 void Scene::processNode(aiNode * node, const aiScene * scene)
 {
