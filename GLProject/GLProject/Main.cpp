@@ -93,9 +93,8 @@ int main()
 
 	// Scenes
 	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
-
 	TargetScene.def_INIT(screenWidth, screenHeight);
-	 // Shaders
+	// Shaders
 	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs");
 	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs");
 	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs");
@@ -120,7 +119,7 @@ int main()
 
 		// Camera setup
 		glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
-		glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 1.0f, 10000.0f);
+		glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 0.1f, 10000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -129,7 +128,6 @@ int main()
 		TargetScene.setupPointOfLight(glm::vec3(0.0, 1000.0, 0.0), glm::vec3(1.0, 1.0, 1.0));
 
 		TargetScene.defDraw(shader);
-
 
 		glfwSwapBuffers(pWindow);
 	}
