@@ -62,9 +62,13 @@ public:
 		models[ID].translation = trans;
 		models[ID].scale = scal;
 	}
+	void def_INIT(GLuint width, GLuint height);
+	void defDraw(Shader shader);
 
-
-
+	// Deferred Rendering Data
+	GLuint defFramebuffer;
+	GLuint defNormTex, defDiffTex, defGeomTex, defDepthTex, defKaTex, defKdTex, defKsTex;
+	GLuint defWidth, defHeight;
 private:
 	/*  Model Data  */
 	PointOfLight pointOfLight;
