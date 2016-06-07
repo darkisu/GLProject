@@ -36,6 +36,9 @@
     <ClCompile Include="ReflectiveShadowMap.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
+    <ClCompile Include="TextureShower.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -51,6 +54,9 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="ReflectiveShadowMap.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShower.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
