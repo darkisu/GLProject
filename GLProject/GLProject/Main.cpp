@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "TextureShower.h"
+#include "DeferredRenderer.h"
 
 // GL Includes
 #include <GLEW\glew.h>
@@ -55,15 +56,18 @@ int main()
 
 	// Scenes
 	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
-	TargetScene.def_INIT(screenWidth, screenHeight);
+
 	// Shaders
 	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs");
 	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs");
 	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs");
 
+	// Deferred Renderer
+	DeferredRenderer renderer(&TargetScene, screenWidth, screenHeight);
+
 	// Texture Shower
 	TextureShower textureShower;
-	textureShower.setTexture(TargetScene.defDiffTex);
+	textureShower.setTexture(renderer.diffuseTex);
 
 	//------Main Loop------//
 	while (!glfwWindowShouldClose(pWindow))
@@ -94,7 +98,7 @@ int main()
 		TargetScene.setupPointOfLight(glm::vec3(0.0, 1000.0, 0.0), glm::vec3(1.0, 1.0, 1.0));
 		
 		//TargetScene.Draw(shader);
-		TargetScene.defDraw(shader);
+		renderer.drawP1(shader);
 		textureShower.showTexture(showTexShader);
 
 		glfwSwapBuffers(pWindow);
