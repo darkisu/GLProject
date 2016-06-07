@@ -51,10 +51,9 @@ Scene::~Scene()
 {
 }
 
-void Scene::Draw(Shader shader)
+void Scene::Draw(Shader shader, GLchar *modelpropname)
 {
-	glUniform3fv(glGetUniformLocation(shader.Program, "LightPos"), 1, glm::value_ptr(pointOfLight.position));
-	glUniform3fv(glGetUniformLocation(shader.Program, "LightColor"), 1, glm::value_ptr(pointOfLight.color));
+
 
 	ModelObject thisModel;
 
@@ -65,7 +64,7 @@ void Scene::Draw(Shader shader)
 		glm::mat4 modelProperties;
 		modelProperties = glm::translate(modelProperties, thisModel.translation); // Translate it down a bit so it's at the center of the scene
 		modelProperties = glm::scale(modelProperties, thisModel.scale);	// It's a bit too big for our scene, so scale it down
-		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "ModelProp"), 1, GL_FALSE, glm::value_ptr(modelProperties));
+		glUniformMatrix4fv(glGetUniformLocation(shader.Program, modelpropname), 1, GL_FALSE, glm::value_ptr(modelProperties));
 
 		for (GLuint meshCounter = thisModel.startMesh; meshCounter < thisModel.meshCount + thisModel.startMesh; meshCounter++)
 		{

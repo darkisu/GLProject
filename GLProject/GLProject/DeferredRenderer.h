@@ -8,7 +8,7 @@ public:
 
 public:
 	GLuint normalTex, diffuseTex, geomatryTex, depthTex, KaTex, KdTex, KsTex;
-	void drawP1(Shader shader);
+	void drawP1(Shader shader, GLchar* modelpropname);
 private:
 	Scene *TargetScene;
 	// Deferred Rendering Data

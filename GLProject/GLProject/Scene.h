@@ -20,11 +20,6 @@ using namespace std;
 
 GLint TextureFromFile(const char* path, string directory);
 
-typedef struct
-{
-	glm::vec3 position;
-	glm::vec3 color;
-}PointOfLight;
 
 typedef struct
 {
@@ -40,18 +35,12 @@ class Scene
 public:
 	Scene(GLchar* path, GLuint &ID)
 	{
-		pointOfLight.position = glm::vec3(0.0, 0.0, 0.0);
-		pointOfLight.color = glm::vec3(1.0, 1.0, 1.0);
 		this->loadModel(path, ID);
 	}
 	~Scene();
-	void Draw(Shader shader);
+	void Draw(Shader shader, GLchar *modelpropname);
 	void loadModel(string path,GLuint &ID);
-	void setupPointOfLight(glm::vec3 position, glm::vec3 color)
-	{
-		pointOfLight.position = position;
-		pointOfLight.color = color;
-	}
+
 	void setModel(GLuint ID, bool toDraw)
 	{
 		models[ID].toDraw = toDraw;
@@ -66,7 +55,6 @@ public:
 
 private:
 	/*  Model Data  */
-	PointOfLight pointOfLight;
 	vector<ModelObject> models;
 	vector<Mesh> meshes;
 	string directory;

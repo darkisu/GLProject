@@ -12,12 +12,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// flat square
-
-
 
 // window initiation
 void initiate(int width, int height, string title);
+
 // callbacks
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -32,6 +30,8 @@ GLuint screenHeight = 600;
 
 // Display Object
 GLFWwindow* pWindow;
+
+// Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 bool keys[1024];
@@ -41,8 +41,13 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
+// Point of Light
+typedef struct
+{
+	glm::vec3 position;
+	glm::vec3 color;
+}PointOfLight;
 
-//Show texture
 
 
 
@@ -69,6 +74,9 @@ int main()
 	TextureShower textureShower;
 	textureShower.setTexture(renderer.diffuseTex);
 
+	// Point of Light
+	PointOfLight lightsource;
+
 	//------Main Loop------//
 	while (!glfwWindowShouldClose(pWindow))
 	{
@@ -94,11 +102,17 @@ int main()
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
+		// Setup Light
+		lightsource.position = glm::vec3(0.0, 1000.0, 0.0);
+		lightsource.color = glm::vec3(1.0, 1.0, 1.0);
+		glUniform3fv(glGetUniformLocation(shader.Program, "LightPos"), 1, glm::value_ptr(lightsource.position));
+		glUniform3fv(glGetUniformLocation(shader.Program, "LightColor"), 1, glm::value_ptr(lightsource.color));
+
 		// Draw the loaded model
-		TargetScene.setupPointOfLight(glm::vec3(0.0, 1000.0, 0.0), glm::vec3(1.0, 1.0, 1.0));
+		
 		
 		//TargetScene.Draw(shader);
-		renderer.drawP1(shader);
+		renderer.drawP1(shader,"ModelProp");
 		textureShower.showTexture(showTexShader);
 
 		glfwSwapBuffers(pWindow);
