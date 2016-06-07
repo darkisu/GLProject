@@ -155,6 +155,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ReflectiveShadowMap.cpp" />
+    <ClCompile Include="TextureShower.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ReflectiveShadowMap.h" />
+    <ClInclude Include="TextureShower.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\defaultshader.glfs" />
