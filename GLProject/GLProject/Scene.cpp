@@ -94,7 +94,7 @@ void Scene::loadModel(string path,GLuint &ID)
 
 	// Process ASSIMP's root node recursively
 	this->processNode(scene->mRootNode, scene);
-	meshCount = this->meshes.size();
+	meshCount = this->meshes.size()-startPoint;
 
 	thisModel.startMesh = startPoint;
 	thisModel.meshCount = meshCount;

@@ -17,5 +17,6 @@ private:
 	GLuint Width, Height;
 	void INIT(GLuint width, GLuint height);
 
+
 };
 

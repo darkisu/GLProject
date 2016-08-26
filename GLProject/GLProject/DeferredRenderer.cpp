@@ -152,3 +152,4 @@ void DeferredRenderer::drawP1(Shader shader, GLchar* modelpropname)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
+

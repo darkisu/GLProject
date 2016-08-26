@@ -44,7 +44,7 @@ ReflectiveShadowMap::ReflectiveShadowMap(unsigned int size)
 
 	// Bind back to default texture and framebuffer
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0 );
 }
 
 void ReflectiveShadowMap::setup(Shader shader,glm::vec3 lightPos)

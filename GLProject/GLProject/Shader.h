@@ -8,13 +8,14 @@
 #include <sstream>
 #include <iostream>
 
-
+#define SHADER_FROM_FILE 0
+#define SHADER_FROM_STRING 1
 
 class Shader
 {
 public:
 	GLuint Program;
-	Shader(const GLchar * vertexPath, const GLchar * fragmentPath);
+	Shader(const GLchar * vertexPath, const GLchar * fragmentPath,const GLuint &mode);
 
 	~Shader();
 	void Use()

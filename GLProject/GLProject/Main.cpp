@@ -61,11 +61,15 @@ int main()
 
 	// Scenes
 	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
+	//TargetScene.loadModel(".\\model\\sponza.obj", cubeID);
+	//TargetScene.setModel(cubeID, true, glm::vec3(0, 1, 0), glm::vec3(0.1, 0.1, 0.1));
+	
+	//Scene TargetScene(".\\model\\san-miguel.obj",sponzaID);
 
 	// Shaders
 	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs");
-	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs");
-	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs");
+	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs", SHADER_FROM_FILE);
+	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs", SHADER_FROM_FILE);
 
 	// Deferred Renderer
 	DeferredRenderer renderer(&TargetScene, screenWidth, screenHeight);
@@ -108,10 +112,7 @@ int main()
 		glUniform3fv(glGetUniformLocation(shader.Program, "LightPos"), 1, glm::value_ptr(lightsource.position));
 		glUniform3fv(glGetUniformLocation(shader.Program, "LightColor"), 1, glm::value_ptr(lightsource.color));
 
-		// Draw the loaded model
-		
-		
-		//TargetScene.Draw(shader);
+		// Draw the loaded model by deferred renderer
 		renderer.drawP1(shader,"ModelProp");
 		textureShower.showTexture(showTexShader);
 
