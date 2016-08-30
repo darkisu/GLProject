@@ -178,6 +178,8 @@
     <None Include="shader\defaultshader.glvs" />
     <None Include="shader\deferredp1.glfs" />
     <None Include="shader\deferredp1.glvs" />
+    <None Include="shader\RSM.glfs" />
+    <None Include="shader\RSM.glvs" />
     <None Include="shader\showTexture.glfs" />
     <None Include="shader\showTexture.glvs" />
   </ItemGroup>

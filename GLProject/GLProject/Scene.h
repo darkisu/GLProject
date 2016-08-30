@@ -16,7 +16,6 @@ using namespace std;
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
 
-#include "ReflectiveShadowMap.h"
 
 GLint TextureFromFile(const char* path, string directory);
 
@@ -61,7 +60,6 @@ private:
 	vector<Texture> textures_loaded;	// Stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 
 										// Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-	ReflectiveShadowMap* shadowMap;
 
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);

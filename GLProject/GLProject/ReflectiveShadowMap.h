@@ -6,17 +6,20 @@
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
-#include "Shader.h"
+#include "Scene.h"
 
 
 class ReflectiveShadowMap
 {
+private:
+	Scene* targetScene;
 public:
 	// result	
 	GLuint shadowMapTextureID, shadowMapFBO;
 	GLuint VPLPosTextureID;
-	ReflectiveShadowMap(unsigned int size);
-	void setup(Shader shader, glm::vec3 lightPos);
+	GLuint vizualizedTextureID;
+	ReflectiveShadowMap(unsigned int size, Scene* target);
+	void draw(Shader shader, glm::vec3 lightPos);
 	~ReflectiveShadowMap();
 };
 

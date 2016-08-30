@@ -2,8 +2,12 @@
 
 
 
-ReflectiveShadowMap::ReflectiveShadowMap(unsigned int size)
+ReflectiveShadowMap::ReflectiveShadowMap(unsigned int size, Scene *target)
 {
+	targetScene = target;
+
+	glActiveTexture(GL_TEXTURE0);
+
 	// Generate framebuffer object for Shadowmap
 	glGenFramebuffers(1, &shadowMapFBO);
 
@@ -13,12 +17,14 @@ ReflectiveShadowMap::ReflectiveShadowMap(unsigned int size)
 	// Generate Shadowmap Texture
 	glGenTextures(1, &shadowMapTextureID);
 	glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
 	// Assign texture to framebuffer depth attachment
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMapTextureID, 0);
@@ -30,30 +36,58 @@ ReflectiveShadowMap::ReflectiveShadowMap(unsigned int size)
 	glGenTextures(1, &VPLPosTextureID);
 	glBindTexture(GL_TEXTURE_2D, VPLPosTextureID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, size, size, 0, GL_RGB, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Assign texture to color attatchment0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, VPLPosTextureID, 0);
 
-	GLenum RSMFBOs[] = { GL_NONE,GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(2, RSMFBOs);
+	// Generate VPL Coordinates Texture
+	glGenTextures(1, &vizualizedTextureID);
+	glBindTexture(GL_TEXTURE_2D, vizualizedTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, size, size, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Assign texture to color attatchment0
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, vizualizedTextureID, 0);
+
+	// Bind back to default texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GLenum RSMFBOs[] = { GL_NONE,GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(3, RSMFBOs);
 
 	// Bind back to default texture and framebuffer
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0 );
 }
 
-void ReflectiveShadowMap::setup(Shader shader,glm::vec3 lightPos)
+void ReflectiveShadowMap::draw(Shader shader,glm::vec3 lightPos)
 {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->shadowMapFBO);
-	glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	glm::mat4 depthModelMatrix = glm::mat4(1.0);
-	glm::mat4 depthMVP = depthViewMatrix * depthModelMatrix;
-	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "depthProp"), 1, GL_FALSE, glm::value_ptr(depthMVP));
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glm::mat4 depthProjectionMatrix = glm::perspective(45.0f, 1.0f, 1.0f, glm::distance(lightPos, glm::vec3(0.0, 0.0, 0.0))*2.0f);
+	glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(-0.5, 0.8, 0.0),   glm::vec3(0.0, 1.0 , 0.0));
+	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix;
+
+	shader.Use();
+
+	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "VPMatrix"), 1, GL_FALSE, glm::value_ptr(depthMVP));
+
+	targetScene->Draw(shader, "ModelProp");
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 

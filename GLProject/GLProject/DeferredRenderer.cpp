@@ -146,7 +146,6 @@ void DeferredRenderer::drawP1(Shader shader, GLchar* modelpropname)
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glViewport(0, 0, Width, Height);
 	shader.Use();
 	TargetScene->Draw(shader, modelpropname);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

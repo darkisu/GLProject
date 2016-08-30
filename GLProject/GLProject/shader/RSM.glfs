@@ -1,0 +1,25 @@
+#version 330 core
+in vec3 FragPos;
+in vec2 uv;
+
+layout (location = 0) out float depth;
+layout (location = 1) out vec3 geom;
+layout (location = 2) out vec3 visualize;
+
+uniform sampler2D texture_diffuse1;
+uniform vec3 Ka;
+uniform vec3 Kd;
+uniform vec3 Ks;
+
+void main()
+{
+	//depth
+	depth = gl_FragCoord.z; 
+
+	//geometry
+	geom = FragPos;
+
+	//depth visualization
+	//visualize = vec3((2.0 * 1.0) / (10000.0 + 1.0 - depth * (10000.0 - 1.0)));
+	visualize = vec3(texture(texture_diffuse1, uv));
+}

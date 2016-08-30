@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "TextureShower.h"
 #include "DeferredRenderer.h"
+#include "ReflectiveShadowMap.h"
 
 // GL Includes
 #include <GLEW\glew.h>
@@ -32,7 +33,7 @@ GLuint screenHeight = 600;
 GLFWwindow* pWindow;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 
 bool keys[1024];
 GLfloat lastX = 400, lastY = 300;
@@ -49,6 +50,8 @@ typedef struct
 }PointOfLight;
 
 
+// Point of Light
+PointOfLight lightsource;
 
 
 
@@ -62,14 +65,15 @@ int main()
 	// Scenes
 	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
 	//TargetScene.loadModel(".\\model\\sponza.obj", cubeID);
-	//TargetScene.setModel(cubeID, true, glm::vec3(0, 1, 0), glm::vec3(0.1, 0.1, 0.1));
+	//TargetScene.setModel(sponzaID, true, glm::vec3(0, 0, 0), glm::vec3(1.0, 1.0, 1.0));
 	
 	//Scene TargetScene(".\\model\\san-miguel.obj",sponzaID);
 
 	// Shaders
-	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs");
+	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs",SHADER_FROM_FILE);
 	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs", SHADER_FROM_FILE);
 	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs", SHADER_FROM_FILE);
+	Shader RSMshader("./shader/RSM.glvs", "./shader/RSM.glfs", SHADER_FROM_FILE);
 
 	// Deferred Renderer
 	DeferredRenderer renderer(&TargetScene, screenWidth, screenHeight);
@@ -78,8 +82,14 @@ int main()
 	TextureShower textureShower;
 	textureShower.setTexture(renderer.diffuseTex);
 
+
+	// Reflective Shadow Map
+	ReflectiveShadowMap RSM(800,&TargetScene);
+
 	// Point of Light
-	PointOfLight lightsource;
+	lightsource.position = glm::vec3(0.0, 0.0, 0);
+	lightsource.color = glm::vec3(1.0, 1.0, 1.0);
+
 
 	//------Main Loop------//
 	while (!glfwWindowShouldClose(pWindow))
@@ -99,23 +109,29 @@ int main()
 		// use shader
 		shader.Use();
 
+
 		// Camera setup
-		glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
+		//glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
 		glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 1.0f, 10000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glm::mat4 VPMatrix = projection * view;
+		//glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		//glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "VPMatrix"), 1, GL_FALSE, glm::value_ptr(VPMatrix));
 
 		// Setup Light
-		lightsource.position = glm::vec3(0.0, 1000.0, 0.0);
-		lightsource.color = glm::vec3(1.0, 1.0, 1.0);
 		glUniform3fv(glGetUniformLocation(shader.Program, "LightPos"), 1, glm::value_ptr(lightsource.position));
 		glUniform3fv(glGetUniformLocation(shader.Program, "LightColor"), 1, glm::value_ptr(lightsource.color));
 
 		// Draw the loaded model by deferred renderer
-		renderer.drawP1(shader,"ModelProp");
-		textureShower.showTexture(showTexShader);
+		//renderer.drawP1(shader,"ModelProp");
+		//TargetScene.Draw(shader, "ModelProp");
 
+
+		//RSM
+		RSM.draw(RSMshader, lightsource.position);
+		textureShower.setTexture(RSM.vizualizedTextureID);
+		textureShower.showTexture(showTexShader);
 		glfwSwapBuffers(pWindow);
 	}
 
@@ -213,5 +229,13 @@ void Do_Movement()
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if (keys[GLFW_KEY_LEFT])
+		lightsource.position.x -= 100.0f;
+	if (keys[GLFW_KEY_RIGHT])
+		lightsource.position.x += 100.0f;
+	if (keys[GLFW_KEY_UP])
+		lightsource.position.z += 100.0f;
+	if (keys[GLFW_KEY_DOWN])
+		lightsource.position.z -= 100.0f;
 }
 

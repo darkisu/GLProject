@@ -13,9 +13,6 @@ layout (location = 5) out vec3 materialKd;
 layout (location = 6) out vec3 materialKs;
 
 uniform sampler2D texture_diffuse1;
-uniform vec3 LightPos;
-uniform vec3 LightColor;
-uniform vec3 ViewPos;
 uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
