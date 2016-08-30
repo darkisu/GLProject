@@ -12,6 +12,7 @@
 class ReflectiveShadowMap
 {
 private:
+	GLuint size;
 	Scene* targetScene;
 public:
 	// result	

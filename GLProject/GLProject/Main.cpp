@@ -84,10 +84,10 @@ int main()
 
 
 	// Reflective Shadow Map
-	ReflectiveShadowMap RSM(800,&TargetScene);
+	ReflectiveShadowMap RSM(256,&TargetScene);
 
 	// Point of Light
-	lightsource.position = glm::vec3(0.0, 0.0, 0);
+	lightsource.position = glm::vec3(0.0, 5000.0, 0.0);
 	lightsource.color = glm::vec3(1.0, 1.0, 1.0);
 
 
@@ -111,6 +111,7 @@ int main()
 
 
 		// Camera setup
+		glViewport(0, 0, screenWidth, screenHeight);
 		//glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
 		glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 1.0f, 10000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
@@ -130,6 +131,7 @@ int main()
 
 		//RSM
 		RSM.draw(RSMshader, lightsource.position);
+		glViewport(0, 0, screenWidth, screenHeight);
 		textureShower.setTexture(RSM.vizualizedTextureID);
 		textureShower.showTexture(showTexShader);
 		glfwSwapBuffers(pWindow);

@@ -5,7 +5,7 @@
 ReflectiveShadowMap::ReflectiveShadowMap(unsigned int size, Scene *target)
 {
 	targetScene = target;
-
+	this->size = size;
 	glActiveTexture(GL_TEXTURE0);
 
 	// Generate framebuffer object for Shadowmap
@@ -76,7 +76,7 @@ void ReflectiveShadowMap::draw(Shader shader,glm::vec3 lightPos)
 	glBindFramebuffer(GL_FRAMEBUFFER, this->shadowMapFBO);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	glViewport(0, 0, size, size);
 	glm::mat4 depthProjectionMatrix = glm::perspective(45.0f, 1.0f, 1.0f, glm::distance(lightPos, glm::vec3(0.0, 0.0, 0.0))*2.0f);
 	glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(-0.5, 0.8, 0.0),   glm::vec3(0.0, 1.0 , 0.0));
 	glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix;
