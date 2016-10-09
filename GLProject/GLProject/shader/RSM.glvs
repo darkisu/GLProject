@@ -6,7 +6,7 @@ layout (location = 2) in vec2 texCoords;
 out vec3 FragPos;
 out vec2 uv;
 
-uniform mat4 ModelProp;
+uniform mat4 ModelMatrix;
 uniform mat4 VPMatrix;
 
 

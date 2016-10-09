@@ -137,7 +137,7 @@ void DeferredRenderer::INIT(GLuint width, GLuint height)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void DeferredRenderer::drawP1(Shader shader, GLchar* modelpropname)
+void DeferredRenderer::drawP1(Shader shader)
 {
 
 	glActiveTexture(GL_TEXTURE0);
@@ -147,7 +147,7 @@ void DeferredRenderer::drawP1(Shader shader, GLchar* modelpropname)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	shader.Use();
-	TargetScene->Draw(shader, modelpropname);
+	TargetScene->Draw(shader);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }

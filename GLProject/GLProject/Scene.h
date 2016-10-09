@@ -37,7 +37,7 @@ public:
 		this->loadModel(path, ID);
 	}
 	~Scene();
-	void Draw(Shader shader, GLchar *modelpropname);
+	void Draw(Shader shader);
 	void loadModel(string path,GLuint &ID);
 
 	void setModel(GLuint ID, bool toDraw)

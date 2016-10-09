@@ -87,7 +87,7 @@ int main()
 	ReflectiveShadowMap RSM(256,&TargetScene);
 
 	// Point of Light
-	lightsource.position = glm::vec3(0.0, 5000.0, 0.0);
+	lightsource.position = glm::vec3(0.0, 4000.0, 0.0);
 	lightsource.color = glm::vec3(1.0, 1.0, 1.0);
 
 

@@ -85,7 +85,7 @@ void ReflectiveShadowMap::draw(Shader shader,glm::vec3 lightPos)
 
 	glUniformMatrix4fv(glGetUniformLocation(shader.Program, "VPMatrix"), 1, GL_FALSE, glm::value_ptr(depthMVP));
 
-	targetScene->Draw(shader, "ModelProp");
+	targetScene->Draw(shader);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

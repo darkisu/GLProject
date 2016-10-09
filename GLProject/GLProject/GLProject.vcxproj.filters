@@ -76,9 +76,6 @@
     <None Include="shader\defaultshader.glvs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shader\defaultshader.glfs">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shader\deferredp1.glfs">
       <Filter>Shaders</Filter>
     </None>
@@ -89,6 +86,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shader\RSM.glvs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\defaultshader.glfs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

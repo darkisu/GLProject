@@ -7,12 +7,12 @@ out vec2 TexCoords;
 out vec3 Normal;
 out vec3 FragPos;
 
-uniform mat4 ModelProp;
+uniform mat4 ModelMatrix;
 uniform mat4 VPMatrix;
 
 void main()
 {
-    gl_Position = VPMatrix * ModelProp * vec4(position, 1.0f);
+    gl_Position = VPMatrix * ModelMatrix * vec4(position, 1.0f);
     TexCoords = texCoords;
     FragPos = vec3(ModelProp * vec4(position, 1.0f));
     Normal = normal;
