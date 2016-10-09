@@ -12,7 +12,7 @@ uniform mat4 VPMatrix;
 
 void main()
 {
-    gl_Position = VPMatrix * ModelProp * vec4(position, 1.0f);
+    gl_Position = VPMatrix * ModelMatrix * vec4(position, 1.0f);
     FragPos = vec3(ModelMatrix * vec4(position, 1.0f));
 	uv = texCoords;
 }
