@@ -65,5 +65,9 @@ private:
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
 
+public:
+	/* Util data */
+	glm::vec3 bCubeOrigin;
+	GLfloat bCubeLength;
 
 };

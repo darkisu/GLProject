@@ -1,13 +1,18 @@
-#version 330 core
+#version 440 core
 
 //Default Variables
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
+in vec4 depthPos;
+
 uniform sampler2D texture_diffuse1;
+uniform sampler2DShadow depthTexture;
 uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
+
+
 //----------------
 
 layout (location = 0) out vec3 color;
@@ -39,7 +44,14 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = Ks * spec * LightColor;  
 
-    vec3 result = (ambient + diffuse + specular) * vec3(ObjectColor);
-    color =  result;
-	//color=vec3(1.0f);
+	//shadow
+
+	float bias = 0.001f;
+	vec4 shadowPos = vec4(depthPos.xy, depthPos.z - bias, depthPos.w);
+
+	float isShadow = textureProj(depthTexture, shadowPos);
+	//isShadow = isShadow > 0 ? 1.0f : 0.0f;
+    vec3 result =  (ambient + isShadow * (diffuse + specular)) * vec3(ObjectColor);  
+    color = result ;
+	//color= vec3(1.0f);
 }

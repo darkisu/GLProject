@@ -1,11 +1,12 @@
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 // Custom Class Includes
 #include "Scene.h"
 #include "Camera.h"
 #include "TextureShower.h"
 #include "DeferredRenderer.h"
 #include "ReflectiveShadowMap.h"
-
+#include "LPV.h"
 // GL Includes
 #include <GLEW\glew.h>
 #include <GLFW\glfw3.h>
@@ -22,6 +23,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void Do_Movement();
+void Process_Light();
 
 
 // Window
@@ -52,7 +54,9 @@ typedef struct
 
 // Point of Light
 PointOfLight lightsource;
-
+const float lightRange = 4096;
+const float lightmovspeed = 0.01;
+GLfloat lighttheta = 0, lightphi = M_PI / 2.0;
 
 
 int main()
@@ -64,14 +68,15 @@ int main()
 
 	// Scenes
 	Scene TargetScene(".\\model\\sponza.obj", sponzaID);
+	//Scene TargetScene(".\\model\\MyScene98.obj", sponzaID);
 	//TargetScene.loadModel(".\\model\\sponza.obj", cubeID);
 	//TargetScene.setModel(sponzaID, true, glm::vec3(0, 0, 0), glm::vec3(1.0, 1.0, 1.0));
 	
 	//Scene TargetScene(".\\model\\san-miguel.obj",sponzaID);
 
 	// Shaders
-	//Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs",SHADER_FROM_FILE);
-	Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs", SHADER_FROM_FILE);
+	Shader shader("./shader/defaultshader.glvs", "./shader/defaultshader.glfs",SHADER_FROM_FILE);
+	//Shader shader("./shader/deferredp1.glvs", "./shader/deferredp1.glfs", SHADER_FROM_FILE);
 	Shader showTexShader("./shader/showTexture.glvs", "./shader/showTexture.glfs", SHADER_FROM_FILE);
 	Shader RSMshader("./shader/RSM.glvs", "./shader/RSM.glfs", SHADER_FROM_FILE);
 
@@ -87,8 +92,12 @@ int main()
 	ReflectiveShadowMap RSM(256,&TargetScene);
 
 	// Point of Light
-	lightsource.position = glm::vec3(0.0, 4000.0, 0.0);
+	lightsource.position = glm::vec3(0.0, lightRange, 0.0);
 	lightsource.color = glm::vec3(1.0, 1.0, 1.0);
+
+
+	//LPV
+	LPV lpv(&TargetScene, &RSM);
 
 
 	//------Main Loop------//
@@ -101,39 +110,56 @@ int main()
 		// Check and call events
 		glfwPollEvents();
 		Do_Movement();
+		Process_Light();
+
+		//RSM
+		RSM.draw(RSMshader, lightsource.position);
+		glViewport(0, 0, screenWidth, screenHeight);
+
+		//LPV
+		lpv.gather();
 
 		// Clear the colorbuffer
 		glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+		glActiveTexture(GL_TEXTURE0);
+
 		// use shader
 		shader.Use();
 
-
 		// Camera setup
 		glViewport(0, 0, screenWidth, screenHeight);
-		//glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
 		glm::mat4 projection = glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 1.0f, 10000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 VPMatrix = projection * view;
-		//glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		//glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "VPMatrix"), 1, GL_FALSE, glm::value_ptr(VPMatrix));
 
+		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "VPMatrix"), 1, GL_FALSE, glm::value_ptr(VPMatrix));
+		glUniform3fv(glGetUniformLocation(shader.Program, "ViewPos"), 1, glm::value_ptr(camera.Position));
 		// Setup Light
 		glUniform3fv(glGetUniformLocation(shader.Program, "LightPos"), 1, glm::value_ptr(lightsource.position));
 		glUniform3fv(glGetUniformLocation(shader.Program, "LightColor"), 1, glm::value_ptr(lightsource.color));
 
+
+	
+		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "depthVP"), 1, GL_FALSE, glm::value_ptr(RSM.getShadowMappingMatrix() ));
+		
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, RSM.shadowMapTextureID);
+		glUniform1i(glGetUniformLocation(shader.Program, "depthTexture"), 1);
+		
 		// Draw the loaded model by deferred renderer
-		//renderer.drawP1(shader,"ModelProp");
-		//TargetScene.Draw(shader, "ModelProp");
+
+		TargetScene.Draw(shader);
 
 
-		//RSM
-		RSM.draw(RSMshader, lightsource.position);
-		glViewport(0, 0, screenWidth, screenHeight);
-		textureShower.setTexture(RSM.vizualizedTextureID);
-		textureShower.showTexture(showTexShader);
+
+		// Show Texture
+		//textureShower.setTexture(RSM.vizualizedTextureID);
+		//textureShower.showTexture(showTexShader);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glfwSwapBuffers(pWindow);
 	}
 
@@ -150,8 +176,8 @@ void initiate(int width, int height, string title)
 		glfwTerminate();
 	}
 	glfwWindowHint(GLFW_SAMPLES, 1);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//------GLFW Window Creating------//
@@ -232,12 +258,23 @@ void Do_Movement()
 	if (keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 	if (keys[GLFW_KEY_LEFT])
-		lightsource.position.x -= 100.0f;
+		lighttheta -= lightmovspeed;
 	if (keys[GLFW_KEY_RIGHT])
-		lightsource.position.x += 100.0f;
+		lighttheta += lightmovspeed;
 	if (keys[GLFW_KEY_UP])
-		lightsource.position.z += 100.0f;
+		lightphi += lightmovspeed;
 	if (keys[GLFW_KEY_DOWN])
-		lightsource.position.z -= 100.0f;
+		lightphi -= lightmovspeed;
 }
 
+
+
+void Process_Light()
+{
+	lightphi = lightphi > M_PI / 2.0 ? M_PI / 2.0 : lightphi;
+	lightphi = lightphi < 0 ? 0 : lightphi;
+	lighttheta = lighttheta > 2 * M_PI ? lighttheta - (2 * M_PI) : lighttheta;
+	lightsource.position.y = lightRange * sin(lightphi);
+	lightsource.position.x = lightRange * cos(lightphi) * cos(lighttheta);
+	lightsource.position.z = lightRange * cos(lightphi) * sin(lighttheta);
+}

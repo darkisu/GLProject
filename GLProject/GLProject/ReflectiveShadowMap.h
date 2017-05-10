@@ -11,9 +11,11 @@
 
 class ReflectiveShadowMap
 {
-private:
+public:
 	GLuint size;
 	Scene* targetScene;
+	glm::mat4 depthMVP;
+	static const glm::mat4 biasMatrix;
 public:
 	// result	
 	GLuint shadowMapTextureID, shadowMapFBO;
@@ -21,6 +23,10 @@ public:
 	GLuint vizualizedTextureID;
 	ReflectiveShadowMap(unsigned int size, Scene* target);
 	void draw(Shader shader, glm::vec3 lightPos);
+	glm::mat4 getShadowMappingMatrix()
+	{
+		return biasMatrix * depthMVP;
+	}
 	~ReflectiveShadowMap();
 };
 

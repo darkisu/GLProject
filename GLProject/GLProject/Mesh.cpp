@@ -55,7 +55,7 @@ void Mesh::Draw(Shader shader)		//draw by default phong lighting
 	GLuint specularNr = 1;
 	for (GLuint i = 0; i < this->textures.size(); i++)
 	{
-		glActiveTexture(GL_TEXTURE0 + i); // Activate proper texture unit before binding
+		glActiveTexture(GL_TEXTURE0); // Activate proper texture unit before binding
 										  // Retrieve texture number (the N in diffuse_textureN)
 		stringstream ss;
 		string number;

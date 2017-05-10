@@ -54,14 +54,14 @@ Scene::~Scene()
 void Scene::Draw(Shader shader)
 {
 
-
+	shader.Use();
 	ModelObject thisModel;
 
 	for (GLuint modelCounter = 0; modelCounter < this->models.size(); modelCounter++)
 	{
 		if (models[modelCounter].toDraw == false) continue;
 		thisModel = models[modelCounter];
-		glm::mat4 modelProperties;
+		glm::mat4 modelProperties(1.0f);
 		modelProperties = glm::translate(modelProperties, thisModel.translation); // Translate it down a bit so it's at the center of the scene
 		modelProperties = glm::scale(modelProperties, thisModel.scale);	// It's a bit too big for our scene, so scale it down
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(modelProperties));
@@ -75,6 +75,7 @@ void Scene::Draw(Shader shader)
 
 void Scene::loadModel(string path,GLuint &ID)
 {
+
 	// Read file via ASSIMP
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate );
@@ -148,6 +149,30 @@ Mesh Scene::processMesh(aiMesh * mesh, const aiScene * scene)
 		vector.z = mesh->mVertices[i].z;
 
 		vertex.Position = vector;
+
+		glm::vec3 bCubeUpper, bCubeLower;
+		if (meshes.size() == 0)
+		{
+			bCubeLower = vector;
+			bCubeUpper = vector;
+		}
+		else
+		{
+			bCubeUpper.x = (vector.x > bCubeUpper.x ? vector.x : bCubeUpper.x);
+			bCubeUpper.y = (vector.y > bCubeUpper.y ? vector.y : bCubeUpper.y);
+			bCubeUpper.z = (vector.z > bCubeUpper.z ? vector.z : bCubeUpper.z);
+
+			bCubeLower.x = (vector.x < bCubeLower.x ? vector.x : bCubeLower.x);
+			bCubeLower.y = (vector.y < bCubeLower.y ? vector.y : bCubeLower.y);
+			bCubeLower.z = (vector.z < bCubeLower.z ? vector.z : bCubeLower.z);
+		}
+		bCubeOrigin = bCubeLower;
+		bCubeUpper -= bCubeLower;
+		bCubeLength = bCubeUpper.x > bCubeUpper.y ?
+			(bCubeUpper.x>bCubeUpper.z ? bCubeUpper.x : bCubeLower.z) : (bCubeUpper.y>bCubeUpper.z ? bCubeUpper.y : bCubeLower.z);
+
+
+
 
 		// Normals
 		vector.x = mesh->mNormals[i].x;

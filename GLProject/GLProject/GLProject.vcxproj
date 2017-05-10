@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DeferredRenderer.cpp" />
+    <ClCompile Include="LPV.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -167,6 +168,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DeferredRenderer.h" />
+    <ClInclude Include="LPV.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
@@ -178,6 +180,10 @@
     <None Include="shader\defaultshader.glvs" />
     <None Include="shader\deferredp1.glfs" />
     <None Include="shader\deferredp1.glvs" />
+    <None Include="shader\LPVgather.glfs" />
+    <None Include="shader\LPVgather.glvs" />
+    <None Include="shader\LPVinjec.glfs" />
+    <None Include="shader\LPVinjec.glvs" />
     <None Include="shader\RSM.glfs" />
     <None Include="shader\RSM.glvs" />
     <None Include="shader\showTexture.glfs" />

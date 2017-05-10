@@ -18,14 +18,14 @@ TextureShower::~TextureShower()
 {
 }
 
-const GLfloat TextureShower::SQUARE_V[] = {
+const GLfloat TextureShower::SQUARE_V[30] = {
 	1.0f,  1.0f, 0.0f, 1.0f, 1.0f, // Top Right
 	1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // Bottom Right
 	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // Bottom Left
 	-1.0f,  1.0f, 0.0f, 0.0f, 1.0f // Top Left 
 };
 
-const GLuint TextureShower::SQUARE_I[] = {
+const GLuint TextureShower::SQUARE_I[6] = {
 	0, 1, 3,  // First Triangle
 	1, 2, 3   // Second Triangle
 };

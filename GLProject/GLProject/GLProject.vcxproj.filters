@@ -42,6 +42,9 @@
     <ClCompile Include="DeferredRenderer.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
+    <ClCompile Include="LPV.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -63,6 +66,9 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="DeferredRenderer.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="LPV.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,6 +95,18 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shader\defaultshader.glfs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\LPVgather.glfs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\LPVgather.glvs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\LPVinjec.glfs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\LPVinjec.glvs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -20,11 +20,13 @@ public:
 	TextureShower(GLuint texToShow);
 	~TextureShower();
 
+	friend class LPV;
+
 private:
 	void showTexture_INIT();
 	GLuint showtex_VBO, showtex_VAO, showtex_EBO;
-	static const GLfloat SQUARE_V[];
-	static const GLuint SQUARE_I[];
+	static const GLfloat SQUARE_V[30];
+	static const GLuint SQUARE_I[6];
 	GLuint textureID;
 };
 
