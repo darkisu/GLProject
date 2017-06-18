@@ -27,8 +27,8 @@ void Process_Light();
 
 
 // Window
-GLuint screenWidth = 800;
-GLuint screenHeight = 600;
+GLuint screenWidth = 1080;
+GLuint screenHeight = 720;
 
 
 // Display Object
@@ -123,6 +123,7 @@ int main()
 		{
 			lpv.gather();
 			lpv.inject(lightsource.position);   // cause the slowing down of the rendering because of the loops in shader
+
 			lightMoved = false;
 		}
 		lpv.propagate();

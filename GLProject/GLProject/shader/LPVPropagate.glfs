@@ -25,7 +25,7 @@ void main()
 	SH01 = texture(inSH01, UV);
     SHp11 = texture(inSHp11, UV);
 	
-	if (texture(inSH00, UV).w == 0.0)
+	if (texture(inSH00, UV).w < 1.0)
 	{
 		vec3 thisCoord;
 		thisCoord.x = gl_FragCoord.x - 0.5;
@@ -52,7 +52,7 @@ void main()
 		for (int i = 0; i < 30 ; i++)
 		{
 			tempSH = texture(inSH00, targetUV[i/5]);
-			//if (tempSH.w == 1.0)
+			if (tempSH.w > 0.0)
 			{
 				// SH00
 				SH00 += 0.8862269255 * (0.2820947918 * tempSH) * propaWeight;
@@ -68,9 +68,15 @@ void main()
 				// SHp11
 				tempSH = texture(inSHp11, targetUV[i/5]);
 				SHn11 += -1.0233267079 * reprojDir[i].x * ( tempSH * propaDir[i].x * (-0.4886025119)) * propaWeight;
-
+				/*
+				SH00/=SH00.w;
+				SHp11/=SHp11.w;
+				SH01/=SH01.w;
+				SHn11/=SHn11.w;
+				*/
 			}
 		}
+
 
 	}
 }

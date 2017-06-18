@@ -1,6 +1,6 @@
 #include "LPV.h"
 #include <sstream>
-
+#define SIDEWEIGHT 1.0
 const glm::vec3 LPV::propaDir[30] = 
 {	
 	glm::vec3(-1.0, 0.0, 0.0),				//X+
@@ -36,36 +36,36 @@ const glm::vec3 LPV::propaDir[30] =
 };
 const glm::vec3 LPV::reprojDir[30] = 
 {
-	glm::vec3(-1.0, 0.0, 0.0),				//X+
-	glm::vec3(0.0, 1.0, 0.0),
-	glm::vec3(0.0, -1.0, 0.0),
-	glm::vec3(0.0, 0.0, 1.0),
-	glm::vec3(0.0, 0.0, -1.0),
-	glm::vec3(1.0, 0.0, 0.0),				//X-
-	glm::vec3(0.0, 1.0, 0.0),
-	glm::vec3(0.0, -1.0, 0.0),
-	glm::vec3(0.0, 0.0, 1.0),
-	glm::vec3(0.0, 0.0, -1.0),
-	glm::vec3(0.0, -1.0, 0.0),				//Y+
-	glm::vec3(1.0, 0.0, 0.0),
-	glm::vec3(-1.0, 0.0, 0.0),
-	glm::vec3(0.0, 0.0, 1.0),
-	glm::vec3(0.0, 0.0, -1.0),
-	glm::vec3(0.0, 1.0, 0.0),				//Y-
-	glm::vec3(1.0, 0.0, 0.0),
-	glm::vec3(-1.0, 0.0, 0.0),
-	glm::vec3(0.0, 0.0, 1.0),
-	glm::vec3(0.0, 0.0, -1.0),
-	glm::vec3(0.0, 0.0, -1.0),				//Z+
-	glm::vec3(1.0, 0.0, 0.0),
-	glm::vec3(-1.0, 0.0, 0.0),
-	glm::vec3(0.0, 1.0, 0.0),
-	glm::vec3(0.0, -1.0, 0.0),
-	glm::vec3(0.0, 0.0, 1.0),				//Z-
-	glm::vec3(1.0, 0.0, 0.0),
-	glm::vec3(-1.0, 0.0, 0.0),
-	glm::vec3(0.0, 1.0, 0.0),
-	glm::vec3(0.0, -1.0, 0.0)
+	glm::vec3(-(5.0-SIDEWEIGHT*4.0), 0.0, 0.0),				//X+
+	glm::vec3(0.0, SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, -SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, 0.0, SIDEWEIGHT),
+	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
+	glm::vec3((5.0 - SIDEWEIGHT*4.0), 0.0, 0.0),				//X-
+	glm::vec3(0.0, SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, -SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, 0.0, SIDEWEIGHT),
+	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
+	glm::vec3(0.0, -(5.0 - SIDEWEIGHT*4.0), 0.0),				//Y+
+	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(0.0, 0.0, SIDEWEIGHT),
+	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
+	glm::vec3(0.0, (5.0 - SIDEWEIGHT*4.0), 0.0),				//Y-
+	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(0.0, 0.0, SIDEWEIGHT),
+	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
+	glm::vec3(0.0, 0.0, -(5.0 - SIDEWEIGHT*4.0)),				//Z+
+	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(0.0, SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, -SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, 0.0, (5.0 - SIDEWEIGHT*4.0)),				//Z-
+	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
+	glm::vec3(0.0, SIDEWEIGHT, 0.0),
+	glm::vec3(0.0, -SIDEWEIGHT, 0.0)
 };
 
 LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , GLuint targetdepth, GLfloat weight)
@@ -87,7 +87,11 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 	SHTexfront = new GLuint[coeffcount];
 	SHTexback = new GLuint[coeffcount];
 	lightInfo3D = new GLuint[coeffcount];
-	SHarray = new glm::vec4[std::pow(resolution,3)];
+	RSMSHs = new GLuint[coeffcount];
+	RSMSHsarray = new glm::vec4* [coeffcount];
+	
+	VPLalignarray = new glm::vec4[std::pow(RSM->size, 2)];
+	SHarray = new glm::vec4[std::pow(resolution, 3)];
 
 	// spherical harmonics texture
 	for (int i = 0; i < coeffcount; i++)
@@ -120,12 +124,26 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 		glGenTextures(1, &lightInfo3D[i]);
 		glBindTexture(GL_TEXTURE_3D, lightInfo3D[i]);
 
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+		// RSM->SH texture
+		glGenTextures(1, &RSMSHs[i]);
+
+		glBindTexture(GL_TEXTURE_2D, RSMSHs[i]);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, RSM->size, RSM->size, 0, GL_RGBA, GL_FLOAT, 0);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+		// array to temporary store SH results
+		RSMSHsarray[i] = new glm::vec4[std::pow(RSM->size, 2)];
 	}
 
 
@@ -185,13 +203,18 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, VPLalignTex, 0);
 	drawbuffers.push_back(GL_COLOR_ATTACHMENT0);
 
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1 + i, RSMSHs[i], 0);
+		drawbuffers.push_back(GL_COLOR_ATTACHMENT1 + i);
+	}
+
 	glDrawBuffers(drawbuffers.size(), drawbuffers.data());
 
 	drawbuffers.clear();
 
 	// --------------injection framebuffer------------------
 	//
-
 	// injection frambuffer
 	glGenFramebuffers(1, &injecFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, injecFBO);
@@ -206,7 +229,6 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 
 	for (int i = 0; i < coeffcount; i++)
 	{
-		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexfront[i], 0);
 		drawbuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
 	}
 
@@ -245,7 +267,7 @@ LPV::~LPV()
 
 void LPV::inject(glm::vec3 lightPos)
 {
-
+	/*
 	// VAO
 	glBindVertexArray(injecVAO);
 
@@ -302,6 +324,37 @@ void LPV::inject(glm::vec3 lightPos)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	*/
+	SHfrontarray = new glm::vec4*[coeffcount];
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, RSMSHs[i]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, RSMSHsarray[i]);
+		SHfrontarray[i] = new glm::vec4[width*height];
+	}
+	glBindTexture(GL_TEXTURE_2D, VPLalignTex);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, VPLalignarray);
+
+
+	for (int i = 0; i < std::pow(RSM->size, 2); i++)
+	{
+		
+		if (VPLalignarray[i].w > 0)
+		{
+			position = VPLalignarray[i].x + VPLalignarray[i].y * resolution + VPLalignarray[i].z * std::pow(resolution, 2);
+			for (int j = 0; j < coeffcount; j++)
+			{
+				SHfrontarray[j][position] += RSMSHsarray[j][i];
+			}
+		}
+	}
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, SHfrontarray[i]);
+		delete[] SHfrontarray[i];
+	}
+	delete[] SHfrontarray;
 }
 
 void LPV::gather()
@@ -310,6 +363,14 @@ void LPV::gather()
 	// Position Texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, RSM->VPLPosTextureID);
+
+	// Color Texture
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, RSM->vizualizedTextureID);
+
+	// Normal Texture
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, RSM->VPLNormalTextureID);
 
 	glBindVertexArray(injecVAO);
 
@@ -324,6 +385,8 @@ void LPV::gather()
 	//Shader and uniform
 	GatheringShader->Use();
 	glUniform1i(glGetUniformLocation(GatheringShader->Program, "VPLs"), 0);
+	glUniform1i(glGetUniformLocation(GatheringShader->Program, "VPLcolor"), 1);
+	glUniform1i(glGetUniformLocation(GatheringShader->Program, "VPLnormal"), 2);
 	glUniform1f(glGetUniformLocation(GatheringShader->Program, "LPVsize"), LPVSize);
 	glUniform1f(glGetUniformLocation(GatheringShader->Program, "LPVres"), resolution);
 	glUniform3fv(glGetUniformLocation(GatheringShader->Program, "lowerbound"), 1, glm::value_ptr( scene->bCubeLower ));

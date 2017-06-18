@@ -2,8 +2,14 @@
 in vec2 UV;
 
 layout (location=0) out vec4 VPLAlign;
+layout (location=1) out vec4 SH00;
+layout (location=2) out vec4 SHn11;
+layout (location=3) out vec4 SH01;
+layout (location=4) out vec4 SHp11;
 
 uniform sampler2D VPLs;
+uniform sampler2D VPLcolor;
+uniform sampler2D VPLnormal;
 uniform float LPVsize;
 uniform float LPVres;
 uniform vec3 lowerbound;
@@ -11,17 +17,37 @@ uniform vec3 lowerbound;
 void main()
 {
 	vec4 tempcolor = texture(VPLs, UV);
+	SH00 = vec4(0.0);
+	SHn11 = vec4(0.0);
+	SH01 = vec4(0.0);
+	SHp11 = vec4(0.0);
 	if(tempcolor.w != 0)
 	{
 		vec3 temp = texture(VPLs, UV).xyz;
 		temp = temp - lowerbound;
 		
 		temp = temp / LPVsize;
-		vec3 result;
-		result.x = floor(temp.x) + 0.5;
-		result.y = floor(temp.y) + floor(temp.z)*LPVres + 0.5;
+		//vec3 result;
+		//result.x = floor(temp.x) + 0.5;
+		//result.y = floor(temp.y) + floor(temp.z)*LPVres + 0.5;
 	
-		VPLAlign = vec4(result, 1.0);
+		VPLAlign = vec4(floor(temp.x),floor(temp.y),floor(temp.z), 1.0);
+
+		vec4 color = texture(VPLcolor, UV);
+		vec3 normal = normalize(texture(VPLnormal, UV)).xyz;
+		vec4 norm;
+
+		norm = normalize(vec4(normal, 0.0));
+		SH00 += (0.8862269255 * color);
+		SHn11 += (-1.0233267079 * norm.y  ) * color;
+		SH01 += (1.0233267079 * norm.z  ) * color;
+		SHp11 += (-1.0233267079 * norm.x  ) * color;
+		SH00.w += 1.0;
+		SHn11.w += 1.0;
+		SH01.w += 1.0;
+		SHp11.w += 1.0;
+
+
 	}
 	else
 		VPLAlign = vec4(0.0);

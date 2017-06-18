@@ -11,12 +11,14 @@ public:
 	// scene objects
 	Scene *scene;
 	ReflectiveShadowMap *RSM;
-	glm::vec4 *SHarray;
+	glm::vec4 *SHarray, **RSMSHsarray, **SHfrontarray, *VPLalignarray;
+	GLuint position;
 
 	// texture IDs
 	GLuint *SHTexfront, *SHTexback;
 	GLuint VPLalignTex;
 	GLuint *lightInfo3D;
+	GLuint *RSMSHs;
 	GLfloat LPVSize;
 
 	// parameters of LPV
@@ -38,7 +40,7 @@ public:
 	Shader* InjecShader;
 	Shader* PropagateShader;
 public:
-	LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM,GLuint targetRes = 32, GLuint depth = 2, GLfloat weight = 0.28);
+	LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM,GLuint targetRes = 32, GLuint depth = 2, GLfloat weight = 0.25);
 	~LPV();
 	void inject(glm::vec3 lightPos);
 	void gather();
