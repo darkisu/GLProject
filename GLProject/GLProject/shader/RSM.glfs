@@ -1,15 +1,17 @@
 #version 440 core
 in vec3 FragPos;
 in vec2 uv;
-
+in vec3 FragNorm;
 layout (location = 0) out float depth;
 layout (location = 1) out vec4 geom;
 layout (location = 2) out vec4 visualize;
+layout (location = 3) out vec4 normal;
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
+uniform vec3 lightpos;
 
 void main()
 {
@@ -22,4 +24,8 @@ void main()
 	//depth visualization
 	//visualize = vec3((2.0 * 1.0) / (10000.0 + 1.0 - depth * (10000.0 - 1.0)));
 	visualize = vec4(texture(texture_diffuse1, uv));
+	
+	//normal
+	float facefrontNormal = dot(lightpos-FragPos, FragNorm);
+	normal = vec4(facefrontNormal >= 0 ? FragNorm : -FragNorm,0.0);
 }

@@ -109,5 +109,11 @@
     <None Include="shader\LPVinjec.glvs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shader\LPVPropagate.glfs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shader\LPVPropagate.glvs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

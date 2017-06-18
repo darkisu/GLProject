@@ -5,6 +5,8 @@ layout (location = 2) in vec2 texCoords;
 
 out vec3 FragPos;
 out vec2 uv;
+out vec3 FragNorm;
+out vec3 lightposition;
 
 uniform mat4 ModelMatrix;
 uniform mat4 VPMatrix;
@@ -15,4 +17,5 @@ void main()
     gl_Position = VPMatrix * ModelMatrix * vec4(position, 1.0f);
     FragPos = vec3(ModelMatrix * vec4(position, 1.0f));
 	uv = texCoords;
+	FragNorm=normal;
 }

@@ -1,22 +1,54 @@
 #version 440 core
 in vec2 UV;
 
-out vec4 VPLAlign;
+layout (location=0) out vec4 SH00;
+layout (location=1) out vec4 SHn11;
+layout (location=2) out vec4 SH01;
+layout (location=3) out vec4 SHp11;
 
-uniform sampler2D VPLs;
+
+uniform sampler2D VPLpos;
+uniform sampler2D VPLcolor;
+uniform sampler2D VPLalign;
+uniform sampler2D VPLnorm;
+uniform int VPLres;
 uniform float LPVsize;
 uniform float LPVres;
-uniform vec3 lowerbound;
+uniform vec3 cubeLB;
+uniform vec3 lightPos;
 
 void main()
 {
-    vec3 temp = texture(VPLs, UV).xyz;
-	temp = temp - lowerbound;
-	temp = temp / LPVsize;
-	vec3 result;
-	result.x = floor(temp.x) + 0.5;
-	result.y = floor(temp.y) * LPVres  + floor(temp.z) + 0.5;
-	
-	VPLAlign = vec4(result, 1.0);
+	vec2 VPLalignPos,alignUV;
+
+	float weight = 1.0;
+
+
+	for (int i=0; i<VPLres ;i++)
+	{
+		for (int j=0; j<VPLres; j++)
+		{
+			alignUV = vec2( float(i + 0.5 ) / float(VPLres) , float(j + 0.5) / float(VPLres));
+			if (texture(VPLalign, alignUV).w!=0)
+			{
+				VPLalignPos = texture(VPLalign, alignUV).xy;
+				if ( VPLalignPos.xy == gl_FragCoord.xy )
+				{
+					vec4 norm = normalize(texture(VPLnorm, alignUV));
+					vec4 color = texture(VPLcolor, alignUV);
+					
+					SH00 += (0.8862269255 * color);
+					SHn11 += (-1.0233267079 * norm.y  * weight) * color;
+					SH01 += (1.0233267079 * norm.z  * weight) * color;
+					SHp11 += (-1.0233267079 * norm.x  * weight) * color;
+					SH00.w = 1.0;
+					SHn11.w = 1.0;
+					SH01.w = 1.0;
+					SHp11.w = 1.0;
+				}
+			}
+		}
+	}
+
 
 }

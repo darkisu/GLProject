@@ -54,9 +54,10 @@ typedef struct
 
 // Point of Light
 PointOfLight lightsource;
-const float lightRange = 4096;
+const float lightRange = 3064;
 const float lightmovspeed = 0.01;
 GLfloat lighttheta = 0, lightphi = M_PI / 2.0;
+bool lightMoved = true;
 
 
 int main()
@@ -93,7 +94,8 @@ int main()
 
 	// Point of Light
 	lightsource.position = glm::vec3(0.0, lightRange, 0.0);
-	lightsource.color = glm::vec3(1.0, 1.0, 1.0);
+	lightsource.color = glm::vec3(1, 1, 1);
+
 
 
 	//LPV
@@ -117,7 +119,14 @@ int main()
 		glViewport(0, 0, screenWidth, screenHeight);
 
 		//LPV
-		lpv.gather();
+		if (lightMoved)
+		{
+			lpv.gather();
+			lpv.inject(lightsource.position);   // cause the slowing down of the rendering because of the loops in shader
+			lightMoved = false;
+		}
+		lpv.propagate();
+
 
 		// Clear the colorbuffer
 		glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
@@ -144,19 +153,37 @@ int main()
 
 	
 		glUniformMatrix4fv(glGetUniformLocation(shader.Program, "depthVP"), 1, GL_FALSE, glm::value_ptr(RSM.getShadowMappingMatrix() ));
-		
+		// Shadow Texture
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, RSM.shadowMapTextureID);
 		glUniform1i(glGetUniformLocation(shader.Program, "depthTexture"), 1);
 		
+		// LPV SHs
+		for (int i = 0; i < lpv.depth; i++)
+		{
+			glActiveTexture(GL_TEXTURE2 + i);
+			glBindTexture(GL_TEXTURE_3D, lpv.lightInfo3D[i]);
+		}
+		glUniform1i(glGetUniformLocation(shader.Program, "LPV00"), 2);
+		glUniform1i(glGetUniformLocation(shader.Program, "LPVn11"), 3);
+		glUniform1i(glGetUniformLocation(shader.Program, "LPV01"), 4);
+		glUniform1i(glGetUniformLocation(shader.Program, "LPVp11"), 5);
+
+
+		glUniform3fv(glGetUniformLocation(shader.Program, "lowerbound"), 1, glm::value_ptr(TargetScene.bCubeLower));
+		glUniform1f(glGetUniformLocation(shader.Program, "bboxlength"), TargetScene.bCubeLength);
+		glUniform1f(glGetUniformLocation(shader.Program, "LPVres"), lpv.resolution);
+		glUniform1f(glGetUniformLocation(shader.Program, "LPVsize"), lpv.LPVSize);
+		glUniform3fv(glGetUniformLocation(shader.Program, "eyepoint"), 1, glm::value_ptr(camera.Position));
+
 		// Draw the loaded model by deferred renderer
 
 		TargetScene.Draw(shader);
-
+		//renderer.drawP1(shader);
 
 
 		// Show Texture
-		//textureShower.setTexture(RSM.vizualizedTextureID);
+		//textureShower.setTexture(renderer.diffuseTex);
 		//textureShower.showTexture(showTexShader);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -258,13 +285,25 @@ void Do_Movement()
 	if (keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 	if (keys[GLFW_KEY_LEFT])
+	{
 		lighttheta -= lightmovspeed;
+		lightMoved = true;
+	}
 	if (keys[GLFW_KEY_RIGHT])
+	{
 		lighttheta += lightmovspeed;
+		lightMoved = true;
+	}
 	if (keys[GLFW_KEY_UP])
+	{
 		lightphi += lightmovspeed;
+		lightMoved = true;
+	}
 	if (keys[GLFW_KEY_DOWN])
+	{
 		lightphi -= lightmovspeed;
+		lightMoved = true;
+	}
 }
 
 

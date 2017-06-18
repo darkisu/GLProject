@@ -1,42 +1,130 @@
 #include "LPV.h"
 #include <sstream>
 
+const glm::vec3 LPV::propaDir[30] = 
+{	
+	glm::vec3(-1.0, 0.0, 0.0),				//X+
+	glm::vec3(-0.89445, 0.44733, 0.0),
+	glm::vec3(-0.89445, -0.44733, 0.0),
+	glm::vec3(-0.89445, 0.0, 0.44733),
+	glm::vec3(-0.89445, 0.0, -0.44733),
+	glm::vec3(1.0, 0.0, 0.0),				//X-
+	glm::vec3(0.89445, 0.44733, 0.0),
+	glm::vec3(0.89445, -0.44733, 0.0),
+	glm::vec3(0.89445, 0.0, 0.44733),
+	glm::vec3(0.89445, 0.0, -0.44733),
+	glm::vec3(0.0, -1.0, 0.0),				//Y+
+	glm::vec3(0.44733, -0.89445, 0.0),
+	glm::vec3(-0.44733, -0.89445, 0.0),
+	glm::vec3(0.0, -0.89445, 0.44733),
+	glm::vec3(0.0, -0.89445, -0.44733),
+	glm::vec3(0.0, 1.0, 0.0),				//Y-
+	glm::vec3(0.44733, 0.89445, 0.0),
+	glm::vec3(-0.44733, 0.89445, 0.0),
+	glm::vec3(0.0, 0.89445, 0.44733),
+	glm::vec3(0.0, 0.89445, -0.44733),
+	glm::vec3(0.0, 0.0, -1.0),				//Z+
+	glm::vec3(0.44733, 0.0, -0.89445),
+	glm::vec3(-0.44733, 0.0, -0.89445),
+	glm::vec3(0.0, 0.44733, -0.89445),
+	glm::vec3(0.0, -0.44733, -0.89445),
+	glm::vec3(0.0, 0.0, 1.0),				//Z-
+	glm::vec3(0.44733, 0.0, 0.89445),
+	glm::vec3(-0.44733, 0.0, 0.89445),
+	glm::vec3(0.0, 0.44733, 0.89445),
+	glm::vec3(0.0, -0.44733, 0.89445)
+};
+const glm::vec3 LPV::reprojDir[30] = 
+{
+	glm::vec3(-1.0, 0.0, 0.0),				//X+
+	glm::vec3(0.0, 1.0, 0.0),
+	glm::vec3(0.0, -1.0, 0.0),
+	glm::vec3(0.0, 0.0, 1.0),
+	glm::vec3(0.0, 0.0, -1.0),
+	glm::vec3(1.0, 0.0, 0.0),				//X-
+	glm::vec3(0.0, 1.0, 0.0),
+	glm::vec3(0.0, -1.0, 0.0),
+	glm::vec3(0.0, 0.0, 1.0),
+	glm::vec3(0.0, 0.0, -1.0),
+	glm::vec3(0.0, -1.0, 0.0),				//Y+
+	glm::vec3(1.0, 0.0, 0.0),
+	glm::vec3(-1.0, 0.0, 0.0),
+	glm::vec3(0.0, 0.0, 1.0),
+	glm::vec3(0.0, 0.0, -1.0),
+	glm::vec3(0.0, 1.0, 0.0),				//Y-
+	glm::vec3(1.0, 0.0, 0.0),
+	glm::vec3(-1.0, 0.0, 0.0),
+	glm::vec3(0.0, 0.0, 1.0),
+	glm::vec3(0.0, 0.0, -1.0),
+	glm::vec3(0.0, 0.0, -1.0),				//Z+
+	glm::vec3(1.0, 0.0, 0.0),
+	glm::vec3(-1.0, 0.0, 0.0),
+	glm::vec3(0.0, 1.0, 0.0),
+	glm::vec3(0.0, -1.0, 0.0),
+	glm::vec3(0.0, 0.0, 1.0),				//Z-
+	glm::vec3(1.0, 0.0, 0.0),
+	glm::vec3(-1.0, 0.0, 0.0),
+	glm::vec3(0.0, 1.0, 0.0),
+	glm::vec3(0.0, -1.0, 0.0)
+};
 
-
-LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , GLuint targetdepth)
+LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , GLuint targetdepth, GLfloat weight)
 {
 	scene = targetScene;
 	RSM = targetRSM;
 	resolution = targetRes;
+	propaWeight = weight;
 
 	LPVSize = scene->bCubeLength / (GLfloat)resolution;
 
 	depth = targetdepth;
 	width = targetRes;
 	height = targetRes * targetRes;
-	coeffcount = 1 + 2 * (depth - 1);
+	coeffcount = (depth)*(depth - 1) + depth;
 
 	glActiveTexture(GL_TEXTURE0);
 
 	SHTexfront = new GLuint[coeffcount];
 	SHTexback = new GLuint[coeffcount];
-
+	lightInfo3D = new GLuint[coeffcount];
+	SHarray = new glm::vec4[std::pow(resolution,3)];
 
 	// spherical harmonics texture
 	for (int i = 0; i < coeffcount; i++)
 	{
+		// prepare front texture
 		glGenTextures(1, &SHTexfront[i]);
 
 		glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SHTexfront[i], 0);
+		// prepare back texture
+		glGenTextures(1, &SHTexback[i]);
+
+		glBindTexture(GL_TEXTURE_2D, SHTexback[i]);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		// light info 3D texture
+		glGenTextures(1, &lightInfo3D[i]);
+		glBindTexture(GL_TEXTURE_3D, lightInfo3D[i]);
+
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	}
 
@@ -53,37 +141,10 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, VPLalignTex, 0);
 
 
-	// --------------gathering setup------------------
-	//
 
-	// gatherinig frambuffer
-	glGenFramebuffers(1, &gatherFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, gatherFBO);
-
-	GLuint depthRenderBuffer;
-	glGenRenderbuffers(1, &depthRenderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, RSM->size, RSM->size);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
-	vector<GLuint> drawbuffers;
-
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, VPLalignTex, 0);
-	drawbuffers.push_back(GL_COLOR_ATTACHMENT0);
-
-	glDrawBuffers(drawbuffers.size(), drawbuffers.data());
-
-	drawbuffers.clear();
-
-	// --------------injection setup------------------
-	//
-
-	// injection frambuffer
-	glGenFramebuffers(1, &injecFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, injecFBO);
-
+	// square VAO
 
 	// VAOs VBOs for injection
 	glGenVertexArrays(1, &injecVAO);
@@ -107,6 +168,34 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 
 	glBindVertexArray(0);
 
+
+	// --------------gathering framebuffer------------------
+	//
+
+	glGenFramebuffers(1, &gatherFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, gatherFBO);
+
+	GLuint depthRenderBuffer;
+	glGenRenderbuffers(1, &depthRenderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, RSM->size, RSM->size);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
+	vector<GLuint> drawbuffers;
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, VPLalignTex, 0);
+	drawbuffers.push_back(GL_COLOR_ATTACHMENT0);
+
+	glDrawBuffers(drawbuffers.size(), drawbuffers.data());
+
+	drawbuffers.clear();
+
+	// --------------injection framebuffer------------------
+	//
+
+	// injection frambuffer
+	glGenFramebuffers(1, &injecFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, injecFBO);
+
 	// bind depth render buffer
 	glGenRenderbuffers(1, &depthRenderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
@@ -117,10 +206,27 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 
 	for (int i = 0; i < coeffcount; i++)
 	{
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexfront[i], 0);
+		//glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexfront[i], 0);
 		drawbuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
 	}
+
 	glDrawBuffers(drawbuffers.size(), drawbuffers.data());
+
+	// --------------propagate framebuffer--------------
+	//
+
+	glGenFramebuffers(1, &propaFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, propaFBO);
+
+	// bind attatchment in propagate function
+
+	glGenRenderbuffers(1, &depthRenderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
+
+	glDrawBuffers(drawbuffers.size(), drawbuffers.data());
+
 	//----------------------------------------------
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -129,6 +235,7 @@ LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , 
 	// Shaders
 	GatheringShader = new Shader("./shader/LPVgather.glvs", "./shader/LPVgather.glfs", SHADER_FROM_FILE);
 	InjecShader = new Shader("./shader/LPVinjec.glvs", "./shader/LPVinjec.glfs", SHADER_FROM_FILE);
+	PropagateShader = new Shader("./shader/LPVPropagate.glvs", "./shader/LPVPropagate.glfs", SHADER_FROM_FILE);
 }
 
 
@@ -136,7 +243,7 @@ LPV::~LPV()
 {
 }
 
-void LPV::inject()
+void LPV::inject(glm::vec3 lightPos)
 {
 
 	// VAO
@@ -154,8 +261,19 @@ void LPV::inject()
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, RSM->vizualizedTextureID);
 
+	// Normal Texture ---- Texture 3
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, RSM->VPLNormalTextureID);
+
+
 	// framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, injecFBO);
+
+	// texture to render
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexfront[i], 0);
+	}
 
 	// viewport and clear
 	glViewport(0, 0, width, height);
@@ -163,7 +281,27 @@ void LPV::inject()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Shader and uniform
+	InjecShader->Use();
+	glUniform1i(glGetUniformLocation(InjecShader->Program, "VPLpos"), 0);
+	glUniform1i(glGetUniformLocation(InjecShader->Program, "VPLalign"), 1);
+	glUniform1i(glGetUniformLocation(InjecShader->Program, "VPLcolor"), 2);
+	glUniform1i(glGetUniformLocation(InjecShader->Program, "VPLnorm"), 3);
+	glUniform1i(glGetUniformLocation(InjecShader->Program, "VPLres"), RSM->size);
+	glUniform1f(glGetUniformLocation(InjecShader->Program, "LPVsize"), LPVSize);
+	glUniform1f(glGetUniformLocation(InjecShader->Program, "LPVres"), this->resolution);
+	glUniform3fv(glGetUniformLocation(InjecShader->Program, "cubeLB"), 1, glm::value_ptr(scene->bCubeLower));
+	glUniform3fv(glGetUniformLocation(InjecShader->Program, "lightPos"), 1, glm::value_ptr(lightPos));
+	//glUniform3fv(glGetUniform)
+
+	//draw
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	
+	for (int i = 0; i < 4; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void LPV::gather()
@@ -188,11 +326,68 @@ void LPV::gather()
 	glUniform1i(glGetUniformLocation(GatheringShader->Program, "VPLs"), 0);
 	glUniform1f(glGetUniformLocation(GatheringShader->Program, "LPVsize"), LPVSize);
 	glUniform1f(glGetUniformLocation(GatheringShader->Program, "LPVres"), resolution);
-	glUniform3fv(glGetUniformLocation(GatheringShader->Program, "lowerbound"), 1, glm::value_ptr( scene->bCubeOrigin ));
+	glUniform3fv(glGetUniformLocation(GatheringShader->Program, "lowerbound"), 1, glm::value_ptr( scene->bCubeLower ));
 
 	//Draw
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void LPV::propagate()
+{
+	// Vertex Array
+	glBindVertexArray(injecVAO);
+
+	// Framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, propaFBO);
+
+	// SH Textures after propagation assign color attachment
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexback[i], 0);
+	}
+
+	// Viewport and Clear
+	glViewport(0, 0, width, height);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// SH Textures befor propagation
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
+	}
+
+	// shader and uniform
+	PropagateShader->Use();
+	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SH00"), 0);
+	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SHn11"), 1);
+	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SH01"), 2);
+	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SHp11"), 3);
+	glUniform1f(glGetUniformLocation(PropagateShader->Program, "LPVres"), resolution);
+	glUniform3fv(glGetUniformLocation(PropagateShader->Program, "propaDir"), 30, glm::value_ptr(propaDir[0]));
+	glUniform3fv(glGetUniformLocation(PropagateShader->Program, "reprojDir"), 30, glm::value_ptr(reprojDir[0]));
+	glUniform1f(glGetUniformLocation(PropagateShader->Program, "propaWeight"), propaWeight);
+
+	//Draw
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	// swap front and back texture
+	swap(SHTexfront, SHTexback);
+
+	// push result to 3D texture
+	for (int i = 0; i < coeffcount; i++)
+	{
+		glBindTexture(GL_TEXTURE_3D, lightInfo3D[i]);
+		glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, SHarray);
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA16F, resolution, resolution, resolution, 0, GL_RGBA, GL_FLOAT, SHarray);
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_3D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 }

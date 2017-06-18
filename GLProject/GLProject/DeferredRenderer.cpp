@@ -122,6 +122,19 @@ void DeferredRenderer::INIT(GLuint width, GLuint height)
 
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, KsTex, 0);
 
+	glGenTextures(1, &indirectTex);
+
+	glBindTexture(GL_TEXTURE_2D, indirectTex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, indirectTex, 0);
+
 	GLuint drawbuffer[] = {
 		GL_NONE,				// Depth
 		GL_COLOR_ATTACHMENT0,	// Diffuse
@@ -130,8 +143,9 @@ void DeferredRenderer::INIT(GLuint width, GLuint height)
 		GL_COLOR_ATTACHMENT3,	// Material Ka
 		GL_COLOR_ATTACHMENT4,	// Material Kd
 		GL_COLOR_ATTACHMENT5,	// Material Ks
+		GL_COLOR_ATTACHMENT6	// indirect
 	};
-	glDrawBuffers(7, drawbuffer);
+	glDrawBuffers(8, drawbuffer);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

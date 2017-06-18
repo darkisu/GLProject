@@ -21,6 +21,7 @@ public:
 	GLuint shadowMapTextureID, shadowMapFBO;
 	GLuint VPLPosTextureID;
 	GLuint vizualizedTextureID;
+	GLuint VPLNormalTextureID;
 	ReflectiveShadowMap(unsigned int size, Scene* target);
 	void draw(Shader shader, glm::vec3 lightPos);
 	glm::mat4 getShadowMappingMatrix()

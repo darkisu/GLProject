@@ -1,7 +1,7 @@
 #version 440 core
 in vec2 UV;
 
-out vec4 VPLAlign;
+layout (location=0) out vec4 VPLAlign;
 
 uniform sampler2D VPLs;
 uniform float LPVsize;
@@ -10,13 +10,19 @@ uniform vec3 lowerbound;
 
 void main()
 {
-    vec3 temp = texture(VPLs, UV).xyz;
-	temp = temp - lowerbound;
-	temp = temp / LPVsize;
-	vec3 result;
-	result.x = floor(temp.x) + 0.5;
-	result.y = floor(temp.y) * LPVres  + floor(temp.z) + 0.5;
+	vec4 tempcolor = texture(VPLs, UV);
+	if(tempcolor.w != 0)
+	{
+		vec3 temp = texture(VPLs, UV).xyz;
+		temp = temp - lowerbound;
+		
+		temp = temp / LPVsize;
+		vec3 result;
+		result.x = floor(temp.x) + 0.5;
+		result.y = floor(temp.y) + floor(temp.z)*LPVres + 0.5;
 	
-	VPLAlign = vec4(result, 1.0);
-
+		VPLAlign = vec4(result, 1.0);
+	}
+	else
+		VPLAlign = vec4(0.0);
 }

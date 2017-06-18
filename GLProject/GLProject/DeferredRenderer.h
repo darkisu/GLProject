@@ -7,7 +7,7 @@ public:
 	~DeferredRenderer();
 
 public:
-	GLuint normalTex, diffuseTex, geomatryTex, depthTex, KaTex, KdTex, KsTex;
+	GLuint normalTex, diffuseTex, geomatryTex, depthTex, KaTex, KdTex, KsTex, indirectTex;
 	void drawP1(Shader shader);
 private:
 	Scene *TargetScene;

@@ -14,6 +14,6 @@ void main()
 {
     gl_Position = VPMatrix * ModelMatrix * vec4(position, 1.0f);
     TexCoords = texCoords;
-    FragPos = vec3(ModelMatrix * vec4(position, 1.0f));
+    FragPos =  position;
     Normal = normal;
 }

@@ -95,6 +95,7 @@ void Scene::loadModel(string path,GLuint &ID)
 
 	// Process ASSIMP's root node recursively
 	this->processNode(scene->mRootNode, scene);
+	bCubeLength = max(bCubeUpper.x - bCubeLower.x, max(bCubeUpper.y - bCubeLower.y, bCubeUpper.z - bCubeLower.z));
 	meshCount = this->meshes.size()-startPoint;
 
 	thisModel.startMesh = startPoint;
@@ -123,6 +124,10 @@ void Scene::processNode(aiNode * node, const aiScene * scene)
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		this->meshes.push_back(this->processMesh(mesh, scene));
 	}
+
+	
+
+
 	// After we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (GLuint i = 0; i < node->mNumChildren; i++)
 	{
@@ -150,8 +155,7 @@ Mesh Scene::processMesh(aiMesh * mesh, const aiScene * scene)
 
 		vertex.Position = vector;
 
-		glm::vec3 bCubeUpper, bCubeLower;
-		if (meshes.size() == 0)
+		if (meshes.size() == 0 && i==0)
 		{
 			bCubeLower = vector;
 			bCubeUpper = vector;
@@ -166,10 +170,7 @@ Mesh Scene::processMesh(aiMesh * mesh, const aiScene * scene)
 			bCubeLower.y = (vector.y < bCubeLower.y ? vector.y : bCubeLower.y);
 			bCubeLower.z = (vector.z < bCubeLower.z ? vector.z : bCubeLower.z);
 		}
-		bCubeOrigin = bCubeLower;
-		bCubeUpper -= bCubeLower;
-		bCubeLength = bCubeUpper.x > bCubeUpper.y ?
-			(bCubeUpper.x>bCubeUpper.z ? bCubeUpper.x : bCubeLower.z) : (bCubeUpper.y>bCubeUpper.z ? bCubeUpper.y : bCubeLower.z);
+
 
 
 

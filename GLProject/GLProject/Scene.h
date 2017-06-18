@@ -67,7 +67,7 @@ private:
 
 public:
 	/* Util data */
-	glm::vec3 bCubeOrigin;
+	glm::vec3 bCubeUpper, bCubeLower;
 	GLfloat bCubeLength;
 
 };

@@ -11,11 +11,21 @@ layout (location = 3) out vec3 geom;
 layout (location = 4) out vec3 materialKa;
 layout (location = 5) out vec3 materialKd;
 layout (location = 6) out vec3 materialKs;
+layout (location = 7) out vec3 indirect;
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
+
+uniform vec3 lowerbound;
+uniform vec3 bboxlength;
+uniform float LPVres;
+uniform float LPVsize;
+uniform sampler2D SH00;
+uniform sampler2D SHn11;
+uniform sampler2D SH01;
+uniform sampler2D SHp11;
 
 void main()
 {
@@ -35,4 +45,19 @@ void main()
 	materialKa = Ka;
 	materialKd = Kd;
 	materialKs = Ks; 
+
+	//LPV
+	
+	vec3 dir = normalize( -Normal );
+	vec4 coeffs = vec4(0.2820947918, (-0.4886025119) * dir.y, (0.4886025119) * dir.z, (-0.4886025119) * dir.x);
+	vec3 align = FragPos - lowerbound;
+	align = align / LPVsize;
+	align.x = ( floor(align.x) + 0.5 ) / LPVres;
+	align.y = ( floor(align.y) + floor(align.z)* LPVres   + 0.5) / (LPVres * LPVres);
+
+
+	vec3 tempindirect = coeffs.x * texture(SH00, align.xy).xyz + coeffs.y * texture(SHn11, align.xy).xyz + coeffs.z * texture(SH01, align.xy).xyz + coeffs.w * texture(SHp11, align.xy).xyz;
+	tempindirect *= 0.005;
+	//tempindirect = clamp(indirect,0.0, 1.0);
+	indirect = tempindirect;
 }
