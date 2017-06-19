@@ -19,6 +19,7 @@ uniform vec3 lowerbound;
 uniform vec3 bboxlength;
 uniform float LPVres;
 uniform float LPVsize;
+uniform float indirectWeight;
 uniform vec3 eyepoint;
 
 //----------------
@@ -72,7 +73,7 @@ void main()
 
 
 	vec3 indirect = coeffs.x * texture(LPV00, align).xyz + coeffs.y * texture(LPVn11, align).xyz + coeffs.z * texture(LPV01, align).xyz + coeffs.w * texture(LPVp11, align).xyz;
-	indirect *= 0.08;
+	indirect *= indirectWeight;
 	indirect = clamp(indirect,0.0, 1.0);
 	
 

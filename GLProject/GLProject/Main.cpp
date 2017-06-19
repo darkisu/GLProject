@@ -59,6 +59,9 @@ const float lightmovspeed = 0.01;
 GLfloat lighttheta = 0, lightphi = M_PI / 2.0;
 bool lightMoved = true;
 
+// indirect parameters
+GLfloat indirectWeight = 0.08;
+
 
 int main()
 {
@@ -175,7 +178,9 @@ int main()
 		glUniform1f(glGetUniformLocation(shader.Program, "bboxlength"), TargetScene.bCubeLength);
 		glUniform1f(glGetUniformLocation(shader.Program, "LPVres"), lpv.resolution);
 		glUniform1f(glGetUniformLocation(shader.Program, "LPVsize"), lpv.LPVSize);
+		glUniform1f(glGetUniformLocation(shader.Program, "indirectWeight"), indirectWeight);
 		glUniform3fv(glGetUniformLocation(shader.Program, "eyepoint"), 1, glm::value_ptr(camera.Position));
+		
 
 		// Draw the loaded model by deferred renderer
 
@@ -305,6 +310,11 @@ void Do_Movement()
 		lightphi -= lightmovspeed;
 		lightMoved = true;
 	}
+	if (keys[GLFW_KEY_KP_ADD])
+		indirectWeight = (indirectWeight >= 1.0 ? 1.0 : indirectWeight + 0.002);
+	if (keys[GLFW_KEY_KP_SUBTRACT])
+		indirectWeight = (indirectWeight <= 0.0 ? 0.0 : indirectWeight - 0.002);
+
 }
 
 

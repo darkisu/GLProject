@@ -23,7 +23,7 @@ void main()
 
 	//depth visualization
 	//visualize = vec3((2.0 * 1.0) / (10000.0 + 1.0 - depth * (10000.0 - 1.0)));
-	visualize = vec4(texture(texture_diffuse1, uv));
+	visualize = vec4(texture(texture_diffuse1, uv)) * vec4(Kd,1.0);
 	
 	//normal
 	float facefrontNormal = dot(lightpos-FragPos, FragNorm);
