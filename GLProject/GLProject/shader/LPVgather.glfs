@@ -38,14 +38,10 @@ void main()
 		vec4 norm;
 
 		norm = normalize(vec4(normal, 0.0));
-		SH00 += (0.8862269255 * color);
-		SHn11 += (-1.0233267079 * norm.y  ) * color;
-		SH01 += (1.0233267079 * norm.z  ) * color;
-		SHp11 += (-1.0233267079 * norm.x  ) * color;
-		SH00.w += 1.0;
-		SHn11.w += 1.0;
-		SH01.w += 1.0;
-		SHp11.w += 1.0;
+		SH00 += 0.8862269255*(0.2820947918 * color);
+		SHn11 += ((-0.4886025119)* norm.y  ) * color * (-1.0233267079);
+		SH01 += (0.4886025119 * norm.z  ) * color * 1.0233267079;
+		SHp11 += ((-0.4886025119) * norm.x  ) * color * (-1.0233267079);
 
 
 	}

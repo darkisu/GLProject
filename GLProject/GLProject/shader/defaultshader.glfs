@@ -35,7 +35,7 @@ void main()
     vec4 ObjectColor = texture(texture_diffuse1, TexCoords);
 
     //ambient
-    vec3 ambient = 0 * LightColor;      //tuned for sponza.obj
+    vec3 ambient = 0.1 * LightColor;      //tuned for sponza.obj
     //vec3 ambient = Ka * LightColor;  
 
     //diffuse
@@ -71,14 +71,15 @@ void main()
 	align = align / LPVres;
 
 
-	vec3 indirect = coeffs.x * texture(LPV00, align).xyz + coeffs.y * texture(LPVn11, align).xyz + coeffs.z * texture(LPV01, align).xyz + coeffs.w * texture(LPVp11, align).xyz;
-	indirect *= 0.08;
+	vec3 indirect = clamp((coeffs.x * texture(LPV00, align).xyz + coeffs.y * texture(LPVn11, align).xyz + coeffs.z * texture(LPV01, align).xyz + coeffs.w * texture(LPVp11, align).xyz)/distance(coeffs, vec4(0.0)),0.0,1.0);
+	indirect *= 3.14;
 	indirect = clamp(indirect,0.0, 1.0);
-	
+	//indirect *= 0;
 
 
 
     vec3 result  =  (ambient + isShadow * (diffuse + specular) + indirect)* vec3(ObjectColor) ;  
     color = result ;
+	//color = indirect + ambient;
 	//color= vec3(1.0f);
 }

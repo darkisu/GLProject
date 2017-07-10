@@ -1,6 +1,8 @@
 #include "LPV.h"
 #include <sstream>
-#define SIDEWEIGHT 1.0
+#define SIDEWEIGHT 1.0//0.4234413544f/3.1415926535//3
+#define FRONTWEIGHT 1.0//0.4006696846f/3.1415926535//2
+
 const glm::vec3 LPV::propaDir[30] = 
 {	
 	glm::vec3(-1.0, 0.0, 0.0),				//X+
@@ -36,36 +38,36 @@ const glm::vec3 LPV::propaDir[30] =
 };
 const glm::vec3 LPV::reprojDir[30] = 
 {
-	glm::vec3(-(5.0-SIDEWEIGHT*4.0), 0.0, 0.0),				//X+
+	glm::vec3(-FRONTWEIGHT, 0.0, 0.0),				//X+
 	glm::vec3(0.0, SIDEWEIGHT, 0.0),
 	glm::vec3(0.0, -SIDEWEIGHT, 0.0),
 	glm::vec3(0.0, 0.0, SIDEWEIGHT),
 	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
-	glm::vec3((5.0 - SIDEWEIGHT*4.0), 0.0, 0.0),				//X-
+	glm::vec3(FRONTWEIGHT, 0.0, 0.0),				//X-
 	glm::vec3(0.0, SIDEWEIGHT, 0.0),
 	glm::vec3(0.0, -SIDEWEIGHT, 0.0),
 	glm::vec3(0.0, 0.0, SIDEWEIGHT),
 	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
-	glm::vec3(0.0, -(5.0 - SIDEWEIGHT*4.0), 0.0),				//Y+
+	glm::vec3(0.0, -FRONTWEIGHT, 0.0),				//Y+
 	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(0.0, 0.0, SIDEWEIGHT),
 	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
-	glm::vec3(0.0, (5.0 - SIDEWEIGHT*4.0), 0.0),				//Y-
+	glm::vec3(0.0, FRONTWEIGHT, 0.0),				//Y-
 	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(0.0, 0.0, SIDEWEIGHT),
 	glm::vec3(0.0, 0.0, -SIDEWEIGHT),
-	glm::vec3(0.0, 0.0, -(5.0 - SIDEWEIGHT*4.0)),				//Z+
+	glm::vec3(0.0, 0.0, -FRONTWEIGHT),				//Z+
 	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(0.0, SIDEWEIGHT, 0.0),
 	glm::vec3(0.0, -SIDEWEIGHT, 0.0),
-	glm::vec3(0.0, 0.0, (5.0 - SIDEWEIGHT*4.0)),				//Z-
+	glm::vec3(0.0, 0.0, FRONTWEIGHT),				//Z-
 	glm::vec3(SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(-SIDEWEIGHT, 0.0, 0.0),
 	glm::vec3(0.0, SIDEWEIGHT, 0.0),
-	glm::vec3(0.0, -SIDEWEIGHT, 0.0)
+	glm::vec3(0.0, SIDEWEIGHT, 0.0)
 };
 
 LPV::LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes , GLuint targetdepth, GLfloat weight)
@@ -335,7 +337,7 @@ void LPV::inject(glm::vec3 lightPos)
 	glBindTexture(GL_TEXTURE_2D, VPLalignTex);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, VPLalignarray);
 
-
+	glm::vec4 lightWeight = glm::vec4(( std::pow(this->resolution, 2) / std::pow(RSM->size, 2)));
 	for (int i = 0; i < std::pow(RSM->size, 2); i++)
 	{
 		
@@ -344,10 +346,19 @@ void LPV::inject(glm::vec3 lightPos)
 			position = VPLalignarray[i].x + VPLalignarray[i].y * resolution + VPLalignarray[i].z * std::pow(resolution, 2);
 			for (int j = 0; j < coeffcount; j++)
 			{
-				SHfrontarray[j][position] += RSMSHsarray[j][i];
+				SHfrontarray[j][position] +=  lightWeight * RSMSHsarray[j][i];
+				SHfrontarray[j][position].w = 1.0;
 			}
 		}
 	}
+	/*
+	for (int i = 0; i < coeffcount; i++)
+	{
+		for (int j = 0; j < width * height; j++)
+		{
+			SHfrontarray[i][j] *= this->LPVSize / std::pow(RSM->size, 2);
+		}
+	}*/
 	for (int i = 0; i < coeffcount; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
@@ -398,7 +409,7 @@ void LPV::gather()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void LPV::propagate()
+void LPV::propagate(int iteration)
 {
 	// Vertex Array
 	glBindVertexArray(injecVAO);
@@ -406,40 +417,42 @@ void LPV::propagate()
 	// Framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, propaFBO);
 
-	// SH Textures after propagation assign color attachment
-	for (int i = 0; i < coeffcount; i++)
-	{
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexback[i], 0);
+	for (int j = 0; j < iteration; j++)
+	{	// SH Textures after propagation assign color attachment
+		for (int i = 0; i < coeffcount; i++)
+		{
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, SHTexback[i], 0);
+		}
+
+		// Viewport and Clear
+		glViewport(0, 0, width, height);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// SH Textures befor propagation
+		for (int i = 0; i < coeffcount; i++)
+		{
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
+		}
+
+		// shader and uniform
+		PropagateShader->Use();
+		glUniform1i(glGetUniformLocation(PropagateShader->Program, "SH00"), 0);
+		glUniform1i(glGetUniformLocation(PropagateShader->Program, "SHn11"), 1);
+		glUniform1i(glGetUniformLocation(PropagateShader->Program, "SH01"), 2);
+		glUniform1i(glGetUniformLocation(PropagateShader->Program, "SHp11"), 3);
+		glUniform1f(glGetUniformLocation(PropagateShader->Program, "LPVres"), resolution);
+		glUniform3fv(glGetUniformLocation(PropagateShader->Program, "propaDir"), 30, glm::value_ptr(propaDir[0]));
+		glUniform3fv(glGetUniformLocation(PropagateShader->Program, "reprojDir"), 30, glm::value_ptr(reprojDir[0]));
+		glUniform1f(glGetUniformLocation(PropagateShader->Program, "propaWeight"), propaWeight / (6.0 * iteration));
+
+		//Draw
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		// swap front and back texture
+		swap(SHTexfront, SHTexback);
 	}
-
-	// Viewport and Clear
-	glViewport(0, 0, width, height);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// SH Textures befor propagation
-	for (int i = 0; i < coeffcount; i++)
-	{
-		glActiveTexture(GL_TEXTURE0 + i);
-		glBindTexture(GL_TEXTURE_2D, SHTexfront[i]);
-	}
-
-	// shader and uniform
-	PropagateShader->Use();
-	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SH00"), 0);
-	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SHn11"), 1);
-	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SH01"), 2);
-	glUniform1i(glGetUniformLocation(PropagateShader->Program, "SHp11"), 3);
-	glUniform1f(glGetUniformLocation(PropagateShader->Program, "LPVres"), resolution);
-	glUniform3fv(glGetUniformLocation(PropagateShader->Program, "propaDir"), 30, glm::value_ptr(propaDir[0]));
-	glUniform3fv(glGetUniformLocation(PropagateShader->Program, "reprojDir"), 30, glm::value_ptr(reprojDir[0]));
-	glUniform1f(glGetUniformLocation(PropagateShader->Program, "propaWeight"), propaWeight);
-
-	//Draw
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-	// swap front and back texture
-	swap(SHTexfront, SHTexback);
 
 	// push result to 3D texture
 	for (int i = 0; i < coeffcount; i++)

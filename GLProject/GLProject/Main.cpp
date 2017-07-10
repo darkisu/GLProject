@@ -59,6 +59,8 @@ const float lightmovspeed = 0.01;
 GLfloat lighttheta = 0, lightphi = M_PI / 2.0;
 bool lightMoved = true;
 
+// indirect settings;
+int iterations = 5;
 
 int main()
 {
@@ -99,7 +101,7 @@ int main()
 
 
 	//LPV
-	LPV lpv(&TargetScene, &RSM);
+	LPV lpv(&TargetScene, &RSM, 32);
 
 
 	//------Main Loop------//
@@ -123,10 +125,9 @@ int main()
 		{
 			lpv.gather();
 			lpv.inject(lightsource.position);   // cause the slowing down of the rendering because of the loops in shader
-
+			lpv.propagate(iterations);
 			lightMoved = false;
 		}
-		lpv.propagate();
 
 
 		// Clear the colorbuffer
@@ -237,6 +238,7 @@ void initiate(int width, int height, string title)
 	glViewport(0, 0, width, height);
 
 	glEnable(GL_DEPTH_TEST);
+	glfwSwapInterval(0);
 }
 
 // Is called whenever a key is pressed/released via GLFW
@@ -305,6 +307,10 @@ void Do_Movement()
 		lightphi -= lightmovspeed;
 		lightMoved = true;
 	}
+	//if (keys[GLFW_KEY_O])
+		//iterations++;
+	//if (keys[GLFW_KEY_P])
+		//iterations--;
 }
 
 
@@ -312,8 +318,9 @@ void Do_Movement()
 void Process_Light()
 {
 	lightphi = lightphi > M_PI / 2.0 ? M_PI / 2.0 : lightphi;
-	lightphi = lightphi < 0 ? 0 : lightphi;
-	lighttheta = lighttheta > 2 * M_PI ? lighttheta - (2 * M_PI) : lighttheta;
+	lightphi = lightphi < M_PI / 180 ? M_PI / 180 : lightphi;
+	lighttheta = lighttheta > 1.5*M_PI ? 1.5*M_PI : lighttheta;
+	lighttheta = lighttheta < 0.5*M_PI ? 0.5*M_PI : lighttheta;
 	lightsource.position.y = lightRange * sin(lightphi);
 	lightsource.position.x = lightRange * cos(lightphi) * cos(lighttheta);
 	lightsource.position.z = lightRange * cos(lightphi) * sin(lighttheta);

@@ -40,11 +40,11 @@ public:
 	Shader* InjecShader;
 	Shader* PropagateShader;
 public:
-	LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM,GLuint targetRes = 32, GLuint depth = 2, GLfloat weight = 0.25);
+	LPV(Scene *targetScene, ReflectiveShadowMap *targetRSM, GLuint targetRes = 32, GLuint depth = 2, GLfloat weight = 1.8);// / 3.1415926535);
 	~LPV();
 	void inject(glm::vec3 lightPos);
 	void gather();
-	void propagate();
+	void propagate(int iteration);
 
 public:
 	// propagate direction array

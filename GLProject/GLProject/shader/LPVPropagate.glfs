@@ -24,8 +24,12 @@ void main()
 	SHn11 = texture(inSHn11, UV);
 	SH01 = texture(inSH01, UV);
     SHp11 = texture(inSHp11, UV);
-	
-	if (texture(inSH00, UV).w < 1.0)
+	/*
+	SH00 = vec4(0.0);
+	SHn11 = vec4(0.0);
+	SH01 = vec4(0.0);
+	SHp11 = vec4(0.0);*/
+	//if (texture(inSH01, UV).w < 1.0)
 	{
 		vec3 thisCoord;
 		thisCoord.x = gl_FragCoord.x - 0.5;
@@ -47,33 +51,39 @@ void main()
 		targetUV[5].x = (thisCoord.x + 0.5) / LPVres;
 		targetUV[5].y = (thisCoord.y + (thisCoord.z - 1.0) * LPVres + 0.5) / LPVresSquare;
 
-		vec4 tempSH, tempColor;
+		vec4 tempSH, tempColor, dotColor;
 
 		for (int i = 0; i < 30 ; i++)
 		{
+			tempColor = vec4(0.0);
 			tempSH = texture(inSH00, targetUV[i/5]);
-			if (tempSH.w > 0.0)
+			tempColor += 0.2820947918 * tempSH;
+			tempSH = texture(inSHn11, targetUV[i/5]);
+			tempColor += ((-0.4886025119) * propaDir[i].y) * tempSH;
+			tempSH = texture(inSH01, targetUV[i/5]);
+			tempColor += (0.4886025119 * propaDir[i].z) * tempSH;
+			tempSH = texture(inSHp11, targetUV[i/5]);
+			tempColor += ((-0.4886025119) * propaDir[i].x) * tempSH;
+			tempColor *= 3.1415926535;
+			tempColor = sqrt(tempColor*tempColor);
+
+			//if (tempSH.w > 0.0)
 			{
 				// SH00
-				SH00 += 0.8862269255 * (0.2820947918 * tempSH) * propaWeight;
+				SH00 += 0.2820947918 * tempColor * propaWeight * 0.8862269255;
 
 				// SHn11
 				tempSH = texture(inSHn11, targetUV[i/5]);
-				SHn11 += -1.0233267079 * reprojDir[i].y * ( tempSH * propaDir[i].y * (-0.4886025119)) * propaWeight;
+				SHn11 += vec4(vec3((-0.4886025119) * reprojDir[i].y * tempColor * propaWeight *(-1.0233267079)),1.0);
 
 				// SH01
 				tempSH = texture(inSH01, targetUV[i/5]);
-				SHn11 += 1.0233267079 * reprojDir[i].z * ( tempSH * propaDir[i].z * (0.4886025119)) * propaWeight;
+				SH01 += vec4(vec3(0.4886025119 * reprojDir[i].z * tempColor * propaWeight * 1.0233267079),1.0);
 
 				// SHp11
 				tempSH = texture(inSHp11, targetUV[i/5]);
-				SHn11 += -1.0233267079 * reprojDir[i].x * ( tempSH * propaDir[i].x * (-0.4886025119)) * propaWeight;
-				/*
-				SH00/=SH00.w;
-				SHp11/=SHp11.w;
-				SH01/=SH01.w;
-				SHn11/=SHn11.w;
-				*/
+				SHp11 += vec4(vec3((-0.4886025119) * reprojDir[i].x * tempColor * propaWeight *(-1.0233267079)),1.0);
+
 			}
 		}
 
